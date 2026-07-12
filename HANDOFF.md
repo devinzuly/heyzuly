@@ -1,0 +1,182 @@
+# Hey Zuly — Development Handoff
+
+*Reconstructed July 12, 2026 from live site, Cloudflare/DNS inspection, and prior Claude Cowork sessions. Use this as the continuity doc until the original Claude handoff is recovered.*
+
+---
+
+## What exists today
+
+| Asset | Status |
+|---|---|
+| **Domain** | `heyzuly.com` — live, DNS on Cloudflare (`104.21.17.71`, `172.67.223.57`) |
+| **Landing page** | Live at https://heyzuly.com — Astro static build (`/_astro/index.G1kGsk2a.css`) |
+| **Source repo** | **None locally** — deployed to Cloudflare Pages only (per owner) |
+| **Waitlist** | **Client-side only** — form shows success message; emails are **not persisted** |
+| **Preview login** | Links to Claude artifact: `https://claude.ai/code/artifact/97c6ff4a-c496-488c-bf1a-d587866ae8b4` |
+| **Local project** | `C:\Users\1devi\Projects\heyzuly` (this repo) — git init, snapshot + docs |
+
+---
+
+## Product vision (from live site + brand sessions)
+
+**Zuly** is a warm AI wellness guide for women in a season of transformation — founded by Lupe "Zuly" Fuentes (born Cali, raised Madrid). Not another content library; a **relationship** that learns your whole life and turns it into a day you can actually do.
+
+### Four pillars (grounded frameworks)
+
+1. **Meditation** — MBSR/MBCT; short daily practice
+2. **Self-healing** — CBT & expressive writing; journaling, reframing
+3. **Physical wellness** — progressive, periodized movement
+4. **Life guidance** — relationships, work, money, self; habit & behavior design
+
+### Core loop
+
+1. Talk to her (goals, day, what's weighing on you)
+2. She learns your life (pillars, rhythms, what matters)
+3. She builds your day (custom routine)
+4. Your calendar fills (weekly tracks)
+5. She checks in (nudge, reframe, plan)
+
+### Channels (planned / marketed)
+
+- **In-app** — most private, E2E encrypted
+- **WhatsApp** — voice & chat
+- **SMS** — quick capture via private number per user
+
+### Program model
+
+- Dynamically generated **Waves** (4- and 8-week tracks), not a static content shelf
+- Courses built from conversation → personalized calendar
+
+---
+
+## Brand architecture (July 2026 decision path)
+
+See `docs/Onda-Zuly-Brand-Architecture.md` for full detail.
+
+**Recommended path (Path A):** **Zuly** as master brand; "onda" / wave / ∞ as identity language (not legal trademark).
+
+| Element | Name | Role |
+|---|---|---|
+| Platform | Zuly (was "Onda" in exploration) | The app / company |
+| Guide | Zuly | AI guide in Lupe's voice |
+| Phase 2 guide (men) | Cruz | Second persona |
+| Program unit | A Wave (or A Set) | Dynamic course Zuly builds |
+| Domains | Pillars | Mind, Body, Money, Purpose, etc. |
+
+**Taglines to test:** *What's your onda?* · *Talk to Zuly.* · *Someone who's actually been there.*
+
+**Audience evolution:** Research initially favored men-first (whitespace); founder story + live site copy skew **women-first** (transformation, reinvention, "mija", "Para ti").
+
+---
+
+## Market & regulatory context
+
+See `docs/AI-Wellness-Platform-Research.md` for citations.
+
+**Key constraints for v1:**
+
+- Position as **wellness guide**, not therapist or medical device
+- No third-party ad trackers on health/journal data (FTC enforcement pattern)
+- Self-harm detection + 988 crisis routing from day one
+- AI disclosure required in multiple states (IL, NV, UT, CA, NY trends)
+- Long-term **memory** is the core product moat and conversion lever
+- Build on frontier APIs (Claude/GPT-class); differentiate on memory, prompts, UX, safety
+- Suggested stack direction: **pgvector** (Supabase/Neon) + **mem0** or **Zep** for memory
+
+**Pricing direction:** ~$70–100/yr annual-first subscription; monthly at launch (per waitlist copy).
+
+---
+
+## Live site technical notes
+
+- **Framework:** Astro (static output)
+- **Hosting:** Cloudflare Pages (confirmed by DNS + `cloudflareinsights` beacon)
+- **Theme:** Light/dark toggle via `data-theme` on `<html>` (session only, not persisted)
+- **Waitlist JS:** Prevents default submit; validates email; hides form; shows "You're in" — **no API call**
+- **Cloudflare account on this machine:** Wrangler cache points to `Info@supplyparcel.com's Account` (`6e9a0668bd7d99087e5c839947b74581`) — confirm this is the correct account for heyzuly Pages project
+
+### Snapshot in this repo
+
+`snapshot/` contains a crawl of the production HTML/CSS/favicon as of handoff date — use to rebuild the Astro project until Pages source is exported.
+
+---
+
+## What's NOT built yet
+
+- [ ] Git repo connected to Cloudflare Pages (or source recovered from Pages)
+- [ ] Waitlist backend (DB, email service, or Cloudflare Worker + KV/D1)
+- [ ] Auth / preview accounts (artifact-only today)
+- [ ] Zuly chat / memory / pillar engine
+- [ ] WhatsApp / SMS integrations
+- [ ] App store presence
+- [ ] Privacy policy, terms, HIPAA-adjacent compliance docs
+- [ ] Analytics beyond Cloudflare Web Analytics (no ad pixels — by design)
+
+---
+
+## Suggested development phases
+
+### Phase 0 — Reconnect (now)
+
+1. Export or recreate Astro source from `snapshot/` + Cloudflare Pages dashboard
+2. Link repo → Cloudflare Pages for CI deploys
+3. Document env secrets (API tokens, waitlist provider)
+
+### Phase 1 — Landing + waitlist
+
+1. Working email capture (options: Cloudflare Worker + D1, Resend + Worker, Supabase, ConvertKit)
+2. Remove placeholder "Log in" or wire to real auth
+3. Privacy policy + footer compliance copy
+
+### Phase 2 — Preview app shell
+
+1. Auth (Clerk, Supabase Auth, or Cloudflare Access)
+2. Minimal chat UI with Zuly system prompt
+3. Onboarding survey → first "Wave" stub
+
+### Phase 3 — Core product
+
+1. Memory layer (pgvector + summarization)
+2. Calendar / practice scheduling
+3. Pillar content generation
+4. Channel integrations (WhatsApp Business API, Twilio SMS)
+
+---
+
+## Info needed from you to proceed
+
+Please share (can paste in chat — redact secrets if posting publicly):
+
+1. **Cloudflare Pages** project name for heyzuly + whether deploy is direct upload or git-connected
+2. **Cloudflare API token** or confirm wrangler login on this machine
+3. **Waitlist destination** preference: email only, spreadsheet, Supabase, ConvertKit, other
+4. **Claude artifact** — can you open/export the preview app artifact?
+5. **Any other handoff notes** from the prior Claude session (screenshots, docs, Figma)
+6. **"Other" priority** you selected — what did you have in mind beyond the handoff doc?
+
+---
+
+## Claude session artifacts recovered
+
+From Cowork session `local_8226762a` (trademark / brand work, July 2026):
+
+- `docs/Onda-Zuly-Brand-Architecture.md`
+- `docs/AI-Wellness-Platform-Research.md`
+
+Prior conversation topics in that session: Loop vs Onda vs Zuly naming, men vs women audience, dynamic "Waves" courses, regulatory landscape, femtech competitive research.
+
+---
+
+## Quick commands (once Astro project is scaffolded)
+
+```bash
+cd C:\Users\1devi\Projects\heyzuly
+npm install
+npm run dev
+# deploy (after wrangler/pages setup)
+npx wrangler pages deploy dist
+```
+
+---
+
+*This handoff will be updated as Cloudflare access and source recovery progress.*
