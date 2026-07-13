@@ -9,7 +9,7 @@
 
 | Phase | Status | Notes |
 |---|---|---|
-| **Phase 1** — Astro rebuild + entity rebrand | 🔄 **IN PROGRESS** | Astro source scaffolded; entity copy live in components |
+| **Phase 1** — Astro rebuild + entity rebrand | ✅ **COMPLETE** | Deployed on Cloudflare Pages; Astro source + entity rebrand live |
 | Phase 2 — Waitlist backend | ⬜ Not started | |
 | Phase 3 — Auth + preview app shell | ⬜ Not started | |
 | Phase 4 — Zuly core (chat, memory) | ⬜ Not started | |
@@ -31,7 +31,7 @@
 - [x] Draft Zuly persona doc (`docs/Zuly-Persona-Spec.md`)
 - [ ] Lighthouse performance ≥ 90 on landing (mobile)
 - [ ] Stakeholder sign-off on hero + Meet Zuly copy
-- [ ] Verify deploy matches prior URL structure after first build push
+- [x] Verify deploy matches prior URL structure after first build push
 
 ---
 
