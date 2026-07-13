@@ -56,7 +56,8 @@
 - [x] README: D1 setup + wrangler commands
 - [ ] Create remote D1 + bind to Pages project (dashboard)
 - [ ] Set `WAITLIST_EXPORT_SECRET` (+ optional `WAITLIST_IP_SALT`) in Pages env
-- [ ] Production smoke test: signup ? export within 60s
+- [x] Production smoke test: signup on heyzuly.com (2026-07-13 deploy `66dd8e5`)
+- [ ] Production smoke test: export within 60s of signup
 - [ ] Rate limit verified (>5/min/IP blocked)
 
 ### Product positioning (Phase 1.5 ? locked)
