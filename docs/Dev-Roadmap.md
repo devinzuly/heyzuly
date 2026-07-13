@@ -10,6 +10,7 @@
 | Phase | Status | Notes |
 |---|---|---|
 | **Phase 1** — Astro rebuild + entity rebrand | ✅ **COMPLETE** | Deployed on Cloudflare Pages; Astro source + entity rebrand live |
+| **Phase 1.5** — Broad-lead copy pass (Option A) | ✅ **COMPLETE** | English-primary marketing; reinvention framing; Spanish/comadre in-product only |
 | Phase 2 — Waitlist backend | ⬜ Not started | |
 | Phase 3 — Auth + preview app shell | ⬜ Not started | |
 | Phase 4 — Zuly core (chat, memory) | ⬜ Not started | |
@@ -23,15 +24,39 @@
 - [x] Componentize landing page (Hero, Meet Zuly, How It Works, Pillars, Waitlist, Footer, Theme toggle)
 - [x] Remove founder name, photo, biography, DJ/music references
 - [x] Implement entity-led copy (hero, Meet Zuly, trust strip, loop steps, footer/legal stubs)
-- [x] Retire Lupe-attributed taglines; adopt *"What's your onda?"* / *"Talk to Zuly."*
+- [x] Retire Lupe-attributed taglines; adopt *"Talk to Zuly."* / reinvention-led hero (retired customer-facing *onda*)
 - [x] Four pillars: Meditation, Self-healing, Body, Life guidance
 - [x] Crisis footer stub: 988 + wellness-not-therapy disclaimer
 - [x] Build outputs to `dist/`; `npm run build` configured
 - [x] README updated with dev commands
 - [x] Draft Zuly persona doc (`docs/Zuly-Persona-Spec.md`)
 - [ ] Lighthouse performance ≥ 90 on landing (mobile)
-- [ ] Stakeholder sign-off on hero + Meet Zuly copy
+- [ ] Stakeholder sign-off on hero + Meet Zuly copy (Phase 1.5 draft ready for review)
 - [x] Verify deploy matches prior URL structure after first build push
+
+### Phase 1.5 checklist (Option A — broad lead, cultural depth in product)
+
+- [x] Hero: English-primary headline; eyebrow *"A guide for the whole of you"*; retire *"What's your onda?"*
+- [x] Phone mockup: neutral warm greeting (*"Good morning"*) — no *mija* / Spanish on landing
+- [x] Meet Zuly: reinvention-season entity story; remove cultural/Latino-specific framing
+- [x] Grep `src/` clean: no *Para ti*, *onda*, *mija*, *Zuleidy*, *Lupe*, Spanish marketing phrases
+- [x] MeetZulyChat + Waitlist: remove Spanish fragments from marketing UI
+- [x] Meta/OG: broad appeal description (women 28–42, reinvention season)
+- [x] `docs/Zuly-Persona-Spec.md`: marketing vs in-product voice; language mirroring rules
+- [x] `npm run build` succeeds
+- [ ] Stakeholder sign-off on Phase 1.5 copy
+
+### Product positioning (Phase 1.5 � locked)
+
+- **Marketing / landing:** English-primary, broad reinvention appeal. No *mija*, no *onda*, no Spanish-led headlines or cultural gatekeeping on the site.
+- **In-app chat (after rapport):** Comadre warmth, bilingual mirroring, and earned terms (*mija*, conversational *�qu� onda?*) � **chat-based only**, never reused as landing or acquisition copy.
+- **Alignment:** Any in-flight Phase 1.5 copy or UI pass must keep marketing English-primary; cultural depth stays in product chat per `docs/Zuly-Persona-Spec.md`.
+
+### Product backlog (future � not Phase 1.5)
+
+| Item | Target phase | Status | Scope (brief) |
+|---|---|---|---|
+| **Ethnicity / cultural language enhancement** | Post�Phase 4 (eval + privacy review) | **Backlog** | User-selectable or carefully inferred cultural/language preference; adaptive persona that mirrors the user's background with deeper Spanish and culturally warm *feeling* in **chat only** � not marketing. Includes exemplar expansion, opt-in/consent for inference, and eval rubrics to avoid stereotyping. **Deferred:** not in current sprint. |
 
 ---
 
