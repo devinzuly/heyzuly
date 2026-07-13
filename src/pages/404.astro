@@ -1,0 +1,60 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+---
+
+<BaseLayout title="Not found — Zuly" description="This page could not be found on heyzuly.com.">
+  <style>
+    main {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 2rem;
+    }
+    main .flame {
+      display: inline-block;
+      width: 0.7em;
+      height: 0.86em;
+      background: linear-gradient(150deg, #e0433b, #c9a475);
+      border-radius: 52% 52% 52% 0;
+      transform: rotate(45deg);
+      box-shadow: 0 0 14px -2px #e0433b;
+      margin-bottom: 1.4rem;
+    }
+    main h1 {
+      font-family: var(--serif);
+      font-weight: 500;
+      font-size: clamp(1.8rem, 5vw, 2.6rem);
+      margin: 0 0 0.6rem;
+      letter-spacing: -0.01em;
+    }
+    main h1 em {
+      font-style: italic;
+      color: var(--oxblood);
+    }
+    main p {
+      color: var(--sub);
+      max-width: 34ch;
+      margin: 0 auto 1.6rem;
+      line-height: 1.6;
+    }
+    main a {
+      color: var(--bg);
+      background: var(--ink);
+      text-decoration: none;
+      font-weight: 700;
+      border-radius: 100px;
+      padding: 0.8rem 1.4rem;
+      display: inline-block;
+    }
+  </style>
+  <main>
+    <div>
+      <span class="flame"></span>
+      <h1>This path went <em>quiet</em>.</h1>
+      <p>Zuly couldn't find that page — but she's still here for you. Let's head back.</p>
+      <a href="/">Back to heyzuly.com</a>
+    </div>
+  </main>
+</BaseLayout>
