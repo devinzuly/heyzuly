@@ -1,0 +1,47 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Hey Zuly: Open Chrome (heyzuly profile)",
+      "type": "shell",
+      "command": "npm run chrome:heyzuly",
+      "problemMatcher": [],
+      "presentation": {
+        "reveal": "silent",
+        "panel": "shared"
+      }
+    },
+    {
+      "label": "Hey Zuly: Astro dev + Chrome",
+      "type": "shell",
+      "command": "npm run dev:heyzuly",
+      "isBackground": true,
+      "problemMatcher": [],
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated"
+      }
+    },
+    {
+      "label": "Hey Zuly: Pages dev + Chrome",
+      "type": "shell",
+      "command": "npm run pages:dev:open",
+      "isBackground": true,
+      "problemMatcher": [],
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated"
+      }
+    },
+    {
+      "label": "Hey Zuly: Detect Chrome profile",
+      "type": "shell",
+      "command": "npm run chrome:detect -- --write",
+      "problemMatcher": [],
+      "presentation": {
+        "reveal": "always",
+        "panel": "shared"
+      }
+    }
+  ]
+}

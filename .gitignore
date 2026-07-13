@@ -2,5 +2,7 @@ node_modules/
 .astro/
 .env
 .env.*
+.dev.vars
 .wrangler/
+heyzuly.chrome.json
 .DS_Store

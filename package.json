@@ -5,10 +5,25 @@
   "private": true,
   "scripts": {
     "dev": "astro dev",
+    "dev:open": "node scripts/dev-with-chrome.mjs --mode=astro",
+    "dev:heyzuly": "node scripts/dev-with-chrome.mjs --mode=astro",
     "build": "astro build",
-    "preview": "astro preview"
+    "preview": "astro preview",
+    "setup:waitlist": "node scripts/setup-waitlist.mjs",
+    "chrome:detect": "node scripts/detect-heyzuly-chrome.mjs",
+    "chrome:heyzuly": "node scripts/open-heyzuly-chrome.mjs https://heyzuly.com",
+    "pages:dev": "npm run build && wrangler pages dev dist",
+    "pages:dev:open": "node scripts/dev-with-chrome.mjs --mode=pages",
+    "deploy:pages": "npm run build && wrangler pages deploy dist --project-name=heyzuly",
+    "deploy": "npm run deploy:pages",
+    "db:migrate:local": "wrangler d1 execute heyzuly-waitlist --local --file=./migrations/0001_create_waitlist.sql",
+    "db:migrate:remote": "wrangler d1 execute heyzuly-waitlist --remote --file=./migrations/0001_create_waitlist.sql"
   },
   "dependencies": {
     "astro": "^5.7.0"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^5.20260708.1",
+    "wrangler": "^4.0.0"
   }
 }

@@ -7,12 +7,23 @@
         <input
           type="email"
           id="email"
+          name="email"
           placeholder="you@email.com"
           aria-label="Email address"
           autocomplete="email"
           required
         />
-        <button class="btn btn-gold" type="submit">Join the waitlist</button>
+        <!-- Honeypot: hidden from users, bots often fill this -->
+        <input
+          type="text"
+          id="website"
+          name="website"
+          tabindex="-1"
+          autocomplete="off"
+          aria-hidden="true"
+          class="join-hp"
+        />
+        <button class="btn btn-gold" type="submit" id="joinSubmit">Join the waitlist</button>
       </form>
       <p class="thanks" id="thanks" role="status" aria-live="polite"></p>
       <p class="join-note">
@@ -23,21 +34,89 @@
   </div>
 </section>
 
+<style>
+  .join-hp {
+    position: absolute;
+    left: -9999px;
+    width: 1px;
+    height: 1px;
+    opacity: 0;
+    pointer-events: none;
+  }
+</style>
+
 <script>
   (function () {
     var f = document.getElementById('joinForm');
     var t = document.getElementById('thanks');
     var e = document.getElementById('email');
-    if (!f) return;
+    var hp = document.getElementById('website');
+    var btn = document.getElementById('joinSubmit');
+    if (!f || !t || !e) return;
+
+    var messages = {
+      invalid_email: 'A real email — try again 🙂',
+      duplicate: "You're already on the list — we'll be in touch soon. ✦",
+      rate_limited: 'Too many tries — wait a minute and try again.',
+      network: "Couldn't reach us — check your connection and try again.",
+      server_error: 'Something went wrong — try again in a moment.',
+    };
+
+    function setStatus(kind, text) {
+      t.className = 'thanks' + (kind ? ' thanks--' + kind : '');
+      t.textContent = text;
+    }
+
     f.addEventListener('submit', function (ev) {
       ev.preventDefault();
-      var v = (e && e.value ? e.value : '').trim();
+      var v = (e.value || '').trim();
       if (!v || v.indexOf('@') < 1) {
-        if (t) t.textContent = 'A real email — try again 🙂';
+        setStatus('error', messages.invalid_email);
         return;
       }
-      f.style.display = 'none';
-      if (t) t.textContent = "You're in. We'll be in touch soon. ✦";
+
+      if (btn) {
+        btn.disabled = true;
+        btn.textContent = 'Joining…';
+      }
+      setStatus('', '');
+
+      fetch('/api/waitlist', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email: v,
+          website: hp ? hp.value : '',
+          source: 'landing',
+        }),
+      })
+        .then(function (res) {
+          return res.json().then(function (data) {
+            return { res: res, data: data };
+          });
+        })
+        .then(function (_ref) {
+          var res = _ref.res;
+          var data = _ref.data;
+
+          if (res.ok && data.ok) {
+            f.style.display = 'none';
+            setStatus('success', data.message || "You're in. We'll be in touch soon. ✦");
+            return;
+          }
+
+          var err = data && data.error ? data.error : 'server_error';
+          setStatus('error', messages[err] || messages.server_error);
+        })
+        .catch(function () {
+          setStatus('error', messages.network);
+        })
+        .finally(function () {
+          if (btn && f.style.display !== 'none') {
+            btn.disabled = false;
+            btn.textContent = 'Join the waitlist';
+          }
+        });
     });
   })();
 </script>

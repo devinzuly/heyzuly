@@ -1,0 +1,10 @@
+name = "heyzuly"
+compatibility_date = "2024-09-23"
+pages_build_output_dir = "dist"
+
+# D1 binding for Pages Functions (functions/api/waitlist*)
+# database_id is auto-filled by: npm run setup:waitlist
+[[d1_databases]]
+binding = "DB"
+database_name = "heyzuly-waitlist"
+database_id = "989129e6-b7fe-46a5-94d7-7f97586d7a74"

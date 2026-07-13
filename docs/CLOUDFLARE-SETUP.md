@@ -1,123 +1,194 @@
-# Cloudflare setup — direct upload → local dev → Git
+# Cloudflare setup — Hey Zuly Phase 2 (waitlist + D1)
 
-Your screenshot confirms **Direct Upload**: Cloudflare is serving 7 built files, not an Astro source repo.
-
-```
-404.html
-favicon.svg
-index.html
-robots.txt
-sitemap-0.xml
-sitemap-index.xml
-_astro/
-```
-
-That matches what we pulled into `dist/` locally.
+Automated setup for Cursor/agents and local development. Minimal manual PowerShell.
 
 ---
 
-## What this means
+## Quick start (one command)
 
-| You have on Cloudflare | You do **not** have on Cloudflare |
+```bash
+npm install
+npm run setup:waitlist
+```
+
+Safe to re-run anytime. The script is idempotent.
+
+### What the agent can do without you
+
+| Action | Command / script |
 |---|---|
-| Compiled HTML/CSS (the live site) | Original `.astro` source files |
-| A Pages project + custom domain | A Git repository with history |
+| Local D1 schema | `npm run setup:waitlist` (always) |
+| Generate local secrets | Creates `.dev.vars` from `.dev.vars.example` |
+| Local API dev | `npm run pages:dev` |
+| Build static site | `npm run build` |
 
-**Git "connected" with no repo yet** = Cloudflare is ready to link a repo, but nothing has been pushed. You need to create the repo first, then connect it.
+### What needs one-time `wrangler login` (browser)
 
----
+Wrangler opens a browser OAuth flow. **Agents cannot complete this step** — you must run it once on your machine:
 
-## Path forward (recommended)
-
-### 1. Work locally from `dist/` (today)
-
-The deployed site is in:
-
-```
-C:\Users\1devi\Projects\heyzuly\dist\
-```
-
-Preview it:
-
-```powershell
-cd C:\Users\1devi\Projects\heyzuly\dist
-npx --yes serve .
-```
-
-Open http://localhost:3000
-
-For quick edits, change `dist/index.html` and `dist/_astro/*.css` directly. For real development, we'll rebuild an Astro project from this (next step).
-
-### 2. Create a GitHub repo
-
-1. Go to [https://github.com/new](https://github.com/new)
-2. Name: `heyzuly`
-3. Private or public — your choice
-4. **Do not** add README/license (we already have files)
-5. Create repo
-
-Push local project:
-
-```powershell
-cd C:\Users\1devi\Projects\heyzuly
-git add .
-git commit -m "Import production site from Cloudflare direct upload"
-git branch -M main
-git remote add origin https://github.com/YOUR-USER/heyzuly.git
-git push -u origin main
-```
-
-### 3. Connect Cloudflare Pages to GitHub
-
-1. [dash.cloudflare.com](https://dash.cloudflare.com) → **Workers & Pages** → your heyzuly project
-2. **Settings** → **Builds & deployments**
-3. **Connect to Git** → choose the new `heyzuly` repo
-4. Build settings (for now, static — no build step):
-
-   | Setting | Value |
-   |---|---|
-   | Framework preset | None |
-   | Build command | *(leave empty)* |
-   | Build output directory | `dist` |
-
-5. Save — future pushes to `main` auto-deploy
-
-### 4. Deploy updates (two options)
-
-**Option A — Git push (after step 3)**  
-Edit files → commit → push → Cloudflare deploys automatically.
-
-**Option B — Wrangler direct upload (keep using direct upload)**
-
-```powershell
-cd C:\Users\1devi\Projects\heyzuly
-npm install -D wrangler
+```bash
 npx wrangler login
-npx wrangler pages deploy dist --project-name=YOUR-PAGES-PROJECT-NAME
+npx wrangler whoami   # verify
 ```
 
-Replace `YOUR-PAGES-PROJECT-NAME` with the name shown in your Cloudflare dashboard.
+After login, re-run:
 
----
-
-## Wrangler login (one-time)
-
-```powershell
-npx wrangler login
-npx wrangler whoami
-npx wrangler pages project list
+```bash
+npm run setup:waitlist
 ```
 
-Paste the project name from `pages project list` into deploy commands.
+This will (when authenticated):
+
+1. List remote D1 databases (`wrangler d1 list --json`)
+2. Use existing `heyzuly-waitlist` **or** create it (`wrangler d1 create heyzuly-waitlist`)
+3. Write `database_id` into `wrangler.toml` (replaces `REPLACE_WITH_D1_DATABASE_ID`)
+4. Apply remote migration (`npm run db:migrate:remote`)
+
+Optional — push production secrets (non-interactive via stdin):
+
+```bash
+npm run setup:waitlist -- --push-secrets
+```
 
 ---
 
-## Why there's no "Download" in the dashboard
+## Project configuration
 
-Direct Upload deployments show **Assets uploaded** but Cloudflare doesn't always expose a download button. The equivalent is fetching the live URLs — which is what `dist/` contains.
+### `wrangler.toml`
+
+```toml
+pages_build_output_dir = "dist"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "heyzuly-waitlist"
+database_id = "<auto-filled by setup>"
+```
+
+- **Binding name `DB`** must match `env.DB` in `functions/`.
+- For **Git-connected Pages**, bindings in `wrangler.toml` sync on deploy.
+- **Dashboard fallback:** Workers & Pages → **heyzuly** → Settings → Functions → D1 database bindings → Variable `DB` → Database `heyzuly-waitlist`.
+
+### Local secrets (`.dev.vars`)
+
+Never commit `.dev.vars`. Example template: `.dev.vars.example`.
+
+```bash
+WAITLIST_EXPORT_SECRET=<random hex>
+WAITLIST_IP_SALT=<random hex>
+```
+
+Used by `wrangler pages dev` for `/api/waitlist/export` and IP hashing.
+
+### Production secrets
+
+Set on the Pages project `heyzuly`:
+
+| Variable | Required | Purpose |
+|---|---|---|
+| `WAITLIST_EXPORT_SECRET` | Yes (for export) | Bearer token for `GET /api/waitlist/export` |
+| `WAITLIST_IP_SALT` | Recommended | Salts IP hashes in D1 |
+
+**Option A — script (after login):**
+
+```bash
+npm run setup:waitlist -- --push-secrets
+```
+
+**Option B — manual:**
+
+```bash
+echo YOUR_SECRET | npx wrangler pages secret put WAITLIST_EXPORT_SECRET --project-name=heyzuly
+echo YOUR_SALT    | npx wrangler pages secret put WAITLIST_IP_SALT --project-name=heyzuly
+```
+
+**Option C — dashboard:** Pages → heyzuly → Settings → Environment variables (production).
 
 ---
 
-## Next development step
+## Deploy
 
-`dist/` is the **built** site. To edit comfortably (components, layouts, waitlist API), we should scaffold an **Astro project** and move this content into `src/`. Say when you want that and we'll do it in this repo.
+### Direct upload (Wrangler)
+
+```bash
+npm run deploy:pages
+# or
+npm run deploy
+```
+
+Requires `wrangler login`.
+
+### Git-connected Pages (recommended for CI)
+
+1. Connect repo in Cloudflare dashboard (Build command: `npm run build`, Output: `dist`).
+2. Ensure `wrangler.toml` has correct `database_id` and D1 binding.
+3. Push to `main` — Pages builds and deploys Functions from `functions/`.
+
+```bash
+git push origin main
+```
+
+---
+
+## Local development
+
+### Astro UI only (no waitlist API)
+
+```bash
+npm run dev
+```
+
+Open http://localhost:4321
+
+### Full site + waitlist API
+
+```bash
+npm run setup:waitlist   # once (local migration + .dev.vars)
+npm run pages:dev
+```
+
+Open the URL wrangler prints (usually http://localhost:8788).
+
+---
+
+## Manual D1 queries
+
+```bash
+npx wrangler d1 execute heyzuly-waitlist --remote --command "SELECT email, created_at FROM waitlist ORDER BY created_at DESC LIMIT 50"
+```
+
+## Admin export
+
+```bash
+curl -H "Authorization: Bearer YOUR_EXPORT_SECRET" https://heyzuly.com/api/waitlist/export
+curl -H "Accept: text/csv" -H "Authorization: Bearer YOUR_EXPORT_SECRET" https://heyzuly.com/api/waitlist/export -o waitlist.csv
+```
+
+---
+
+## Setup script reference
+
+| Script | Purpose |
+|---|---|
+| `npm run setup:waitlist` | Full idempotent setup (Node, cross-platform) |
+| `scripts/setup-waitlist.ps1` | Windows wrapper → same Node script |
+| `npm run db:migrate:local` | Local D1 only |
+| `npm run db:migrate:remote` | Remote D1 only (needs login) |
+| `npm run pages:dev` | Build + `wrangler pages dev dist` |
+| `npm run deploy:pages` | Build + `wrangler pages deploy` |
+
+### Flags
+
+```bash
+npm run setup:waitlist -- --push-secrets   # pipe secrets to Pages (production)
+npm run setup:waitlist -- --skip-local     # skip local migration
+npm run setup:waitlist -- --skip-remote    # skip remote steps even if logged in
+```
+
+Exit code `2` = not authenticated (local steps may still have succeeded).
+
+---
+
+## Historical note: direct upload → Git
+
+The site was originally deployed via **Direct Upload** (static `dist/` only). Phase 2 adds Pages Functions and D1. Connecting Git is still recommended so `npm run build` runs on every push. See git history in this doc’s prior revision for step-by-step Git connection if the dashboard is not yet linked.

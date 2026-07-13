@@ -12,7 +12,7 @@ Zuly is not a content library, a therapist, or a romantic companion. She is a **
 
 Working backwards from that entity, the primary beachhead is:
 
-> **Women 28–42, US-based, in a season of reinvention** — juggling work, relationships, family obligations, and self-neglect; therapy-curious or therapy-adjacent but wanting daily structure, not another appointment; comfortable with AI chat; willing to pay ~$70–100/year for a relationship that remembers them.
+> **Women 28–42, US-based, in a season of growth** — juggling work, relationships, family obligations, and self-neglect; therapy-curious or therapy-adjacent but wanting daily structure, not another appointment; comfortable with AI chat; willing to pay ~$70–100/year for a relationship that remembers them.
 
 This demographic converges where three market patterns overlap:
 
@@ -150,7 +150,7 @@ Zuly occupies the relational space between:
 
 **Archetype definition:**
 
-> Zuly is the friend who already figured out that self-care isn't selfish — and helps you build the day that proves it. She's been through enough to know that reinvention isn't a vibe, it's a schedule. She doesn't lecture. She listens, remembers, and puts one thing on your calendar.
+> Zuly is the friend who already figured out that self-care isn't selfish — and helps you build the day that proves it. She's been through enough to know that growth isn't a vibe, it's a schedule. She doesn't lecture. She listens, remembers, and puts one thing on your calendar.
 
 **Secondary archetype notes (what she borrows, not what she is):**
 
@@ -215,7 +215,7 @@ Zuly occupies the relational space between:
 | Relationship | Mixed — single, partnered, divorced, mothers | Life guidance pillar relevance |
 | Tech comfort | High — uses iPhone, WhatsApp, calendar apps | Multi-channel product requirement |
 
-**Psychographic profile — "The Woman in a Season of Reinvention":**
+**Psychographic profile — "The Woman in a Season of Growth":**
 
 She is not broken. She is **overextended**.
 
@@ -237,7 +237,7 @@ She is not broken. She is **overextended**.
 
 - Finch's 75% female / 25–35 core ([FoxData](https://foxdata.com/en/blogs/finch-as-app-store-editors-choice-a-self-care-companion/)) validates the segment
 - Rosebud's therapy-adjacent journalers ([Rosebud](https://www.rosebud.app/blog/ai-journaling-vs-traditional-journaling)) validate willingness to pay for AI reflection
-- Her 75 / She 75 apps targeting "women who want lasting change without burning out" ([Her 75](https://her75app.com/)) validate the "season of reinvention" framing
+- Her 75 / She 75 apps targeting "women who want lasting change without burning out" ([Her 75](https://her75app.com/)) validate the "season of growth" framing
 - Headspace's decline (2M subscribers, down from 3.5M peak) ([Business of Apps](https://www.businessofapps.com/data/headspace-statistics/)) suggests meditation-only is a shrinking ceiling — Zuly's woman is the one who churned from Calm
 
 **Anti-personas (who Zuly is NOT for in v1):**

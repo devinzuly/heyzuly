@@ -1,0 +1,4 @@
+# Local Pages Functions secrets for `npm run pages:dev`
+# Setup copies this to .dev.vars and replaces placeholders — never commit .dev.vars
+WAITLIST_EXPORT_SECRET=generate-or-paste-export-secret
+WAITLIST_IP_SALT=generate-or-paste-ip-salt
