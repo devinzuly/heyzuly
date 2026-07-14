@@ -39,10 +39,10 @@ Ordered by leverage for the talk → learn → Wave path. Agent should pick the 
 | 9 | ICS calendar export for day plan | **done** | #8 | N |
 | 10 | Privacy Policy + ToS drafts (wellness-not-therapy, AI disclosure) | **done** (draft) | Parallel anytime | N — **counsel review before Stripe / paid launch** |
 | 11 | Landing polish (Lighthouse ≥90, stakeholder copy sign-off) | **in progress** (a11y/nav polish shipped; human Lighthouse + copy sign-off pending) | Phase 1.5 draft | N |
-| 12 | Human dry-run: 20 prompts vs prompt v1 (≥85% voice, 100% crisis) | backlog | #2 | N |
+| 12 | Human dry-run: 20 prompts vs prompt v1 (≥85% voice, 100% crisis) | **prep done** — awaiting human rating (`docs/evals/dry-run.md`, `npm run eval:dry-run`) | #2 | N |
 | 13 | Expand crisis keyword + hard-fail eval cases | backlog | #2 | N |
 
-**Shipped 2026-07-14:** #3–#9 (Wave injection + `user_facts` + SSE + safety + onboarding + `waves`/`day_plans` + `GET /api/wave/today.ics`) + optional soft-launch Self-healing survey + #10 Privacy/ToS **drafts** at `/privacy` + `/terms` (marked Draft; counsel review before paid launch). **#11 landing polish (2026-07-14 code pass):** WCAG-oriented token contrast (`--faint` / light `--gold` / light `--spark`), skip link, mobile Menu disclosure (Pillars / How / Privacy / Terms), waitlist label + focus, trimmed meta description, footer Privacy/Terms verified. **Still needs human:** mobile Lighthouse ≥90 score note + stakeholder copy sign-off (hero + Meet Zuly / Phase 1.5). **Love Languages** stays backlog (never day-1). **Next can-do:** human Lighthouse/copy sign-off to close #11, or human dry-run (#12); large WIP should be committed before more Phase 4 scope.
+**Shipped 2026-07-14:** #3–#9 (Wave injection + `user_facts` + SSE + safety + onboarding + `waves`/`day_plans` + `GET /api/wave/today.ics`) + optional soft-launch Self-healing survey + #10 Privacy/ToS **drafts** at `/privacy` + `/terms` (marked Draft; counsel review before paid launch). **#11 landing polish (2026-07-14 code pass):** WCAG-oriented token contrast (`--faint` / light `--gold` / light `--spark`), skip link, mobile Menu disclosure (Pillars / How / Privacy / Terms), waitlist label + focus, trimmed meta description, footer Privacy/Terms verified. **Still needs human:** mobile Lighthouse ≥90 score note + stakeholder copy sign-off (hero + Meet Zuly / Phase 1.5). **Love Languages** stays backlog (never day-1). **Next can-do:** human dry-run scoring to close #12 (`npm run eval:dry-run` + `/app`); human Lighthouse/copy sign-off to close #11; #13 crisis keyword expansion; holdouts fill under `docs/evals/holdouts/`.
 
 ### B. Blocked on vendor — hold (list only)
 
@@ -143,9 +143,9 @@ Ordered by leverage for the talk → learn → Wave path. Agent should pick the 
 | Item | Target phase | Status | Scope (brief) |
 |---|---|---|---|
 | **Ethnicity / cultural language enhancement** | Post–Phase 4 (eval + privacy review) | **Backlog / deferred** | User-selectable or carefully inferred cultural/language preference; adaptive persona with deeper Spanish and culturally warm *feeling* in **chat only** — not marketing. **Deferred cultural depth suite:** Spanish-preference, bilingual-switch, Spanish crisis. Keep en-default + light `es-mirror` / few `earned-mija` only. See `docs/Zuly-Evals.md` + `docs/evals/`. |
-| **Exemplar paraphrases / holdouts (~20%)** | Phase 4 prep | **Backlog / deferred** | Hold out paraphrase variants so prompt v1 is not overfit to literal `good` text in `cases.jsonl`. |
+| **Exemplar paraphrases / holdouts (~20%)** | Phase 4 prep | **stub folder** (`docs/evals/holdouts/`) — cases still backlog | Hold out paraphrase variants so prompt v1 is not overfit to literal `good` text in `cases.jsonl`. |
 | **Eval harness — live model / judge** | Phase 4 prep | **Backlog / deferred** | Offline library gates done (`npm run eval:offline`). Live Anthropic generation + judge still deferred (needs `ANTHROPIC_API_KEY` + scoring path). |
-| **Skipped golden themes** | Phase 4 prep | **Backlog / deferred** | in-laws spiral; sibling triangulation; mild-illness lazy-day guilt; false-promise memory claim. |
+| **Skipped golden themes** | Phase 4 prep | **done** (`ex-102`–`ex-105`) | in-laws spiral; sibling triangulation; mild-illness lazy-day guilt; false-promise memory claim. |
 | **Resend waitlist confirmation email** | Phase 2 optional / later | **Backlog / deferred** | Do **not** implement now. Optional Resend/ConvertKit sync on signup remains deferred. |
 | **Clerk keys + Phase 3 prod smoke** | Phase 3 exit | **User-blocked / deferred** | Clerk app + keys in Pages; prod smoke: sign up → `/app` → sign out → sign in. Code in repo; blocked on user credentials. |
 | **Love Languages module** | Post–Phase 5 (Life deep-dive) | **Backlog / deferred** | Optional Life conversational deep-dive; multi-preference; **never day-1**; **never framed as science**. Keep scored Chapman quiz **EXCLUDE**d (`docs/Onboarding-Survey-Spec.md` §4). Prefer L3 support prefs until elaborated later. |
@@ -400,8 +400,8 @@ Can proceed without Clerk keys or live chat API.
 - [x] Priority A/B fills to ~100 golden — **101** cases; safety **26/101 (~26%)**; culture deferred — see `docs/evals/README.md`
 - [x] Offline eval harness — library gates on `good` baseline (`scripts/eval-cases.mjs`; `npm run eval:offline`) — must_include / must_not / crisis 988+findahelpline / lexical hard_fail_if
 - [ ] Live model / judge harness — **deferred / backlog** (stubbed; needs `ANTHROPIC_API_KEY`)
-- [ ] Human dry-run: 20 test prompts against prompt v1; target ≥85% voice pass, **100%** crisis pass
-- [ ] Paraphrases / holdouts (~20%) — **deferred / backlog** so prompt is not overfit to literal Good text
+- [ ] Human dry-run: 20 test prompts against prompt v1; target ≥85% voice pass, **100%** crisis pass — **prep shipped** (`docs/evals/dry-run.md` + `npm run eval:dry-run`); human scoring still open
+- [ ] Paraphrases / holdouts (~20%) - **stub folder** `docs/evals/holdouts/` (fill `cases-holdout.jsonl` later); so prompt is not overfit to literal Good text
 - [ ] Skipped themes (deferred): in-laws spiral; sibling triangulation; mild-illness lazy-day guilt; false-promise memory claim
 
 
@@ -409,7 +409,7 @@ Can proceed without Clerk keys or live chat API.
 
 - [x] **Persona system prompt** v1: Comadre Guide anchors, boundaries, never-say rules (`docs/prompts/zuly-system-v1.md`)
 - [x] **JSONL golden library** — `docs/evals/cases.jsonl` + README/index; signatures in persona spec
-- [x] **~100 golden exemplars** across Priority A/B axes (101; Safety ~26%; cultural deferred)
+- [x] **~100 golden exemplars** across Priority A/B axes (**105**; Safety ~25%; cultural deferred; skipped B themes filled `ex-102`–`ex-105`)
 - [x] Chat API stub: `POST /api/chat` — JSON `{ reply }` + crisis keyword pre-check; Anthropic when `ANTHROPIC_API_KEY` set; local `CHAT_DEV_BYPASS` without Clerk (`functions/api/chat.ts`)
 - [x] Chat streaming: SSE / token stream (`stream: true` or `Accept: text/event-stream`); stub chunks + Anthropic Messages stream when key set
 - [x] Conversation storage stub: D1 `conversations` + `messages (id, user_id, conversation_id, role, content, channel, created_at)`; persist on POST; `GET /api/chat` history (`migrations/0003_create_messages.sql`)
@@ -863,7 +863,7 @@ Week:  1    2    3    4    5    6    7    8    9   10   11   12 ...
 
 | Workstream | Parallel with | Owner | Notes |
 |---|---|---|---|
-| **Persona exemplars + eval rubric** | Phases 1–4 | Dev + copy review | **Prep #1:** taxonomy/rubric + prompt v1 + **~100 golden achieved** (101 in `docs/evals/`); safety ~26%; cultural depth deferred; offline library harness done; paraphrases/holdouts + live judge still backlog; blocks Phase 4 exit |
+| **Persona exemplars + eval rubric** | Phases 1–4 | Dev + copy review | **Prep #1:** taxonomy/rubric + prompt v1 + **~100 golden achieved** (105 in `docs/evals/`); safety ~25%; cultural depth deferred; offline library harness done; holdouts fill + live judge still backlog; dry-run prep shipped; blocks Phase 4 exit |
 | **Privacy policy / ToS draft** | Phases 2?6 | Dev + legal template | Don't wait until Phase 7 |
 | **Meta WhatsApp Business verification** | Phases 4?5 | Dev | 1?4 week external delay |
 | **Stripe account + product setup** | Phase 5 | Dev | Test mode during Phase 5 |
@@ -886,10 +886,11 @@ Week:  1    2    3    4    5    6    7    8    9   10   11   12 ...
 
 Canonical queue: **§ Ordered sequence → A. Can do now**. Top of stack as of 2026-07-14:
 
-1. **Close #11** — human mobile Lighthouse ≥90 note + stakeholder copy sign-off (code a11y/nav pass shipped); or start **#12 human dry-run** if copy capacity is elsewhere
-2. Expand crisis keyword + hard-fail eval cases (#13) when touching safety
-3. Hold all vendor signups (Clerk, Resend, Anthropic if unset, Stripe, Twilio, Supabase, ConvertKit) — **counsel review of Privacy/ToS before Stripe**
-4. **Commit recommendation:** large uncommitted WIP (Phase 4 + #10 + #11 polish) — cut a checkpoint commit before #12 or more product scope
+1. **Close #12** — human scores the dry-run set (`npm run eval:dry-run` → `/app` or prompt-paste); ≥85% voice, 100% crisis
+2. **Close #11** — human mobile Lighthouse ≥90 note + stakeholder copy sign-off (code a11y/nav pass shipped)
+3. Expand crisis keyword + hard-fail eval cases (#13) when touching safety
+4. Hold all vendor signups (Clerk, Resend, Anthropic if unset, Stripe, Twilio, Supabase, ConvertKit) — **counsel review of Privacy/ToS before Stripe**
+5. Fill holdout paraphrases under `docs/evals/holdouts/` (~20%) when dry-run capacity allows
 
 ---
 

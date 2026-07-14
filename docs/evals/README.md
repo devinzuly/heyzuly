@@ -5,7 +5,7 @@
 > **Rubric + taxonomy:** [`../Zuly-Evals.md`](../Zuly-Evals.md)  
 > **Prompt under test:** [`../prompts/zuly-system-v1.md`](../prompts/zuly-system-v1.md)
 
-Machine-readable golden set for Phase 4 persona evals. **Current:** **101** golden (`ex-001`–`ex-101`) — Priority A1–A5 + B1–B4 residual complete. Safety share **26/101 (~26%)** — near locked ~25%. Human raters use the rubric in `Zuly-Evals.md`; scripts should read this JSONL.
+Machine-readable golden set for Phase 4 persona evals. **Current:** **105** golden (`ex-001`–`ex-105`) — Priority A1–A5 + B1–B4 residual complete. Safety share **26/105 (~25%)** — near locked ~25%. Human raters use the rubric in `Zuly-Evals.md`; scripts should read this JSONL.
 
 ---
 
@@ -16,6 +16,8 @@ Machine-readable golden set for Phase 4 persona evals. **Current:** **101** gold
 | `cases.jsonl` | Golden library — one JSON object per line |
 | `exemplars.md` | Condensed human index (id, title, axes, User one-liner) |
 | `README.md` | This field guide |
+| `dry-run.md` | Human dry-run checklist (#12) — 20 curated prompts |
+| `holdouts/` | Paraphrase holdout stub (fill later) |
 | `_gen_cases.py` | Regenerates `cases.jsonl` (edit cases here, then run) |
 | `_gen_index.py` | Regenerates `exemplars.md` from JSONL |
 
@@ -62,7 +64,7 @@ Do **not** duplicate full Bad/Good prose into the persona spec. Keep ~12–15 si
 
 ### Locked composition targets
 
-- **Ceiling:** ~100 golden cases (Phase 4 production library) — **achieved at 101**
+- **Ceiling:** ~100 golden cases (Phase 4 production library) — **achieved at 105**
 - **Safety share:** ~25% with `severity` ∈ {`crisis`, `edge-safety`} — **~26% now**
 - **Cultural depth:** **Deferred** — no Spanish-preference suite, bilingual-switch suite, or Spanish crisis depth. Keep en-default + light `es-mirror` + few `earned-mija` only.
 - **Channel:** mostly `app`
@@ -109,9 +111,9 @@ Hold out ~20% paraphrases later so the prompt is not overfit to literal `good` t
 | **A4** Loneliness / parasocial | **~5–7** | **Done** — `ex-071`–`ex-079` (9) |
 | **A5** Jailbreak | **~6–8** | **Done** — `ex-080`–`ex-086` (7) |
 | **B1** Work / ambition | **~5** | **Done** — `ex-087`–`ex-091` (5) |
-| **B2** Family / partner | **~5–6** | **Done** — `ex-092`–`ex-095` (4; sibling / in-laws deferred) |
-| **B3** Body / rest / capacity | **~3** | **Done** — `ex-096`–`ex-097` (2; mild-illness guilt deferred) |
-| **B4** Memory / continuity | **~4–5** | **Done** — `ex-098`–`ex-101` (4; false-promise claim deferred) |
+| **B2** Family / partner | **~5–6** | **Done** — `ex-092`–`ex-095` + `ex-102`–`ex-103` (in-laws / sibling) |
+| **B3** Body / rest / capacity | **~3** | **Done** — `ex-096`–`ex-097` + `ex-104` (mild-illness guilt) |
+| **B4** Memory / continuity | **~4–5** | **Done** — `ex-098`–`ex-101` + `ex-105` (false-promise claim) |
 | **voice** | remainder | Not needed — already at ~100 |
 | **Cultural depth** | **0** | Deferred |
 
@@ -128,7 +130,7 @@ Planning ★ ids were gapped; library uses contiguous `ex-057`+.
 
 Non-star A2/A3 outlines (`ex-065`…`069`, `ex-078`…`082`, etc.) remain deferred.
 
-**Next (backlog):** paraphrases / holdouts (~20%); live model/judge harness. Offline library gates: `npm run eval:offline`. Do not expand Spanish-preference / bilingual-switch / Spanish-crisis depth.
+**Next:** human dry-run (#12) via `npm run eval:dry-run` + `dry-run.md`; fill `holdouts/` paraphrases; live model/judge harness still vendor-blocked. Offline: `npm run eval:offline`. Do not expand Spanish-preference / bilingual-switch / Spanish-crisis depth.
 
 ---
 
@@ -150,5 +152,5 @@ Checks:
 
 Live model generation + judge: **deferred / backlog**. If `ANTHROPIC_API_KEY` is unset, live is skipped; if set, the path is still stubbed.
 
-**Status:** offline library validation **done**; paraphrases/holdouts and live judge remain backlog.
+**Status:** offline library validation **done**; dry-run prep shipped; holdout case fill + live judge remain backlog.
 

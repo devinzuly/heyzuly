@@ -281,6 +281,6 @@ wrangler.toml   # D1 binding + Pages output dir
 - Auth: Clerk at `/sign-in` and `/sign-up`; preview app at `/app` (Phase 3)
 - Chat: `POST`/`GET /api/chat` + D1 persistence + SSE + safety classifier/moderation (Phase 4); local `CHAT_DEV_BYPASS` / `PUBLIC_CHAT_DEV_BYPASS`
 - Wave + day plan: `GET`/`POST /api/wave`, `POST /api/wave/today`; ICS export `GET /api/wave/today.ics`
-- Evals: `npm run eval:offline` (101 library gates + safety smoke)
+- Evals: `npm run eval:offline` (105 library gates + safety smoke); human dry-run set: `npm run eval:dry-run` (see `docs/evals/dry-run.md`)
 - Brand is **entity-led** — no founder biography on site
 - No ad trackers on health-related flows
