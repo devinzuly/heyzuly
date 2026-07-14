@@ -419,7 +419,7 @@ Prioritize features that serve the **Zuly entity → beachhead woman** chain, no
 
 | Priority | Item | Why |
 |---|---|---|
-| P0 | Zuly persona system prompt + 50 annotated exemplars | Entity is the product ([MindStudio](https://www.mindstudio.ai/blog/ai-brand-voice-system-voice-profile-body-of-work-design-tokens)) |
+| P0 | Zuly persona system prompt + ~100 golden exemplars (`docs/evals/`) | Entity is the product ([MindStudio](https://www.mindstudio.ai/blog/ai-brand-voice-system-voice-profile-body-of-work-design-tokens)) |
 | P0 | Boundary/safety layer (crisis detect, 988, never-diagnose) | Compliance floor ([Comply Code](https://complycode.app/articles/ai-therapy-app-licensing-rules)) |
 | P0 | Replace founder block on site with entity-led copy | Immediate brand alignment |
 | P0 | Memory infrastructure (pgvector + mem0/Zep) | Core moat and conversion lever |

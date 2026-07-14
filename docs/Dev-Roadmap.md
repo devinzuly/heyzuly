@@ -11,8 +11,8 @@
 |---|---|---|
 | **Phase 1** ? Astro rebuild + entity rebrand | ? **COMPLETE** | Deployed on Cloudflare Pages; Astro source + entity rebrand live |
 | **Phase 1.5** ? Broad-lead copy pass (Option A) | ? **COMPLETE** | English-primary marketing; growth framing; Spanish/comadre in-product only |
-| Phase 2 ? Waitlist backend | ?? **IN PROGRESS** | D1 schema + Pages Functions + form wired |
-| Phase 3 ? Auth + preview app shell | ? Not started | |
+| Phase 2 ? Waitlist backend | ? **COMPLETE** | Production waitlist API verified 2026-07-13 |
+| Phase 3 ? Auth + preview app shell | ?? In progress | Clerk + `/app` shell implemented |
 | Phase 4 ? Zuly core (chat, memory) | ? Not started | |
 | Phase 5 ? Waves, pillars & calendar loop | ? Not started | |
 | Phase 6 ? Channels (WhatsApp, SMS) | ? Not started | |
@@ -54,11 +54,25 @@
 - [x] `GET /api/waitlist/export` ? secret-protected
 - [x] Waitlist form wired to API with error states
 - [x] README: D1 setup + wrangler commands
-- [ ] Create remote D1 + bind to Pages project (dashboard)
-- [ ] Set `WAITLIST_EXPORT_SECRET` (+ optional `WAITLIST_IP_SALT`) in Pages env
+- [x] Create remote D1 + bind to Pages project (dashboard) - verified wrangler d1 info heyzuly-waitlist; prod signups persist
+- [x] Set `WAITLIST_EXPORT_SECRET` (+ optional `WAITLIST_IP_SALT`) in Pages env - export 200 on prod (2026-07-13)
 - [x] Production smoke test: signup on heyzuly.com (2026-07-13 deploy `66dd8e5`)
-- [ ] Production smoke test: export within 60s of signup
-- [ ] Rate limit verified (>5/min/IP blocked)
+- [x] Production smoke test: export within 60s of signup (2026-07-13; export includes recent rows)
+- [x] Rate limit verified (>5/min/IP blocked) - 429 from 5th rapid POST same IP (2026-07-13)
+
+### Phase 3 checklist (auth + preview app shell)
+
+- [x] Clerk integrated: sign-up, sign-in, sign-out, password reset (Clerk UI)
+- [x] `/app` React island ? protected shell with chat stub
+- [x] Landing "Log in" ? `/sign-in` (artifact placeholder removed)
+- [x] D1 `users` + `invites` migration (`migrations/0002_create_users.sql`)
+- [x] `POST /api/users/sync`, `POST /api/users/onboarding`
+- [x] Invite stub: `POST /api/invite/grant` + optional `INVITE_REQUIRED`
+- [x] Onboarding AI disclosure modal + crisis link in app chrome
+- [x] Env vars documented (`.env.example`, `.dev.vars.example`, `docs/CLOUDFLARE-SETUP.md`)
+- [ ] Clerk app created + keys set in Cloudflare Pages (user action)
+- [ ] Production smoke test: sign up ? `/app` ? sign out ? sign in
+- [ ] Preview env configured (branch previews or `preview.heyzuly.com`)
 
 ### Product positioning (Phase 1.5 ? locked)
 
@@ -70,7 +84,7 @@
 
 | Item | Target phase | Status | Scope (brief) |
 |---|---|---|---|
-| **Ethnicity / cultural language enhancement** | Post?Phase 4 (eval + privacy review) | **Backlog** | User-selectable or carefully inferred cultural/language preference; adaptive persona that mirrors the user's background with deeper Spanish and culturally warm *feeling* in **chat only** ? not marketing. Includes exemplar expansion, opt-in/consent for inference, and eval rubrics to avoid stereotyping. **Deferred:** not in current sprint. |
+| **Ethnicity / cultural language enhancement** | Post–Phase 4 (eval + privacy review) | **Backlog** | User-selectable or carefully inferred cultural/language preference; adaptive persona that mirrors the user's background with deeper Spanish and culturally warm *feeling* in **chat only** — not marketing. Includes Spanish-preference / bilingual-switch / Spanish crisis depth suites, opt-in/consent for inference, and eval rubrics to avoid stereotyping. **Deferred:** not in Phase 4 golden library (~100); keep en-default + light mirror-only only. See `docs/Zuly-Evals.md` taxonomy + `docs/evals/`. |
 
 ---
 
@@ -124,12 +138,12 @@ Assumes no major regulatory blockers, no App Store review delays (web-first), an
 ### Not built
 
 - Waitlist backend deployed to prod D1 (code in repo; bind D1 + secrets in Pages)
-- Auth, user accounts, preview app
+- Auth, user accounts, preview app (Phase 3 code in repo; Clerk keys + prod deploy pending)
 - Zuly chat, memory, safety layer
 - Waves, pillars, calendar loop
 - WhatsApp, SMS channels
 - Monetization (Stripe), privacy policy, terms
-- Persona system prompt + exemplar library (production)
+- Persona system prompt + exemplar library — **~100 golden achieved** (**101** in `docs/evals/cases.jsonl`); safety ~26%; cultural depth deferred; chat wiring pending
 
 ### Brand debt to clear
 
@@ -165,7 +179,7 @@ Assumes no major regulatory blockers, no App Store review delays (web-first), an
 - [ ] Crisis footer stub: 988 + wellness-not-therapy disclaimer
 - [ ] Build outputs to `dist/`; Git push auto-deploys to Pages
 - [ ] Local dev: `npm run dev` works; README updated with dev commands
-- [ ] Draft Zuly persona doc (`docs/Zuly-Persona-Spec.md`) ? voice anchors, boundaries, 10 starter exemplars
+- [x] Draft Zuly persona doc (`docs/Zuly-Persona-Spec.md`) — voice anchors, boundaries; golden library in `docs/evals/` (**101**; ~100 / ~25% safety achieved; culture deferred)
 
 #### Exit criteria (measurable)
 
@@ -213,10 +227,10 @@ Assumes no major regulatory blockers, no App Store review delays (web-first), an
 
 #### Exit criteria (measurable)
 
-- [ ] Test signup persists in D1; visible in export within 60s
-- [ ] Duplicate email returns friendly message; no duplicate rows
+- [x] Test signup persists in D1; visible in export within 60s (2026-07-13 prod)
+- [x] Duplicate email returns friendly message; no duplicate rows - 409 duplicate; UI friendly copy; export count unchanged
 - [ ] 10 consecutive signups succeed without error
-- [ ] Rate limit blocks >5 signups/min/IP
+- [x] Rate limit blocks >5 signups/min/IP (429 rate_limited; verified 2026-07-13)
 
 #### Tech stack
 
@@ -246,22 +260,22 @@ Assumes no major regulatory blockers, no App Store review delays (web-first), an
 
 #### Deliverables
 
-- [ ] Auth provider integrated: sign-up, sign-in, sign-out, password reset
-- [ ] `/app` route (Astro SSR or separate Vite/React island ? see stack)
-- [ ] Protected layout: sidebar/header, chat pane stub, profile menu
-- [ ] "Log in" on landing ? real auth (remove Claude artifact link)
-- [ ] User record in DB: `users (id, auth_provider_id, email, created_at, onboarding_complete)`
-- [ ] Invite flow stub: waitlist email ? magic link or manual invite flag
-- [ ] AI disclosure in onboarding: "Zuly is an AI wellness guide, not a therapist"
-- [ ] Crisis resources link persistent in app chrome
-- [ ] Deploy preview env (`preview.heyzuly.com` or CF Pages branch previews)
+- [x] Auth provider integrated: sign-up, sign-in, sign-out, password reset
+- [x] `/app` route (React island in Astro static build)
+- [x] Protected layout: sidebar/header, chat pane stub, profile menu
+- [x] "Log in" on landing ? real auth (remove Claude artifact link)
+- [x] User record in DB: `users (id, auth_provider_id, email, created_at, onboarding_complete)`
+- [x] Invite flow stub: waitlist email ? manual invite flag (`invites` table + `/api/invite/grant`)
+- [x] AI disclosure in onboarding: "Zuly is an AI wellness guide, not a therapist"
+- [x] Crisis resources link persistent in app chrome
+- [ ] Deploy preview env (`preview.heyzuly.com` or CF Pages branch previews) ? docs + env vars; user configures dashboard
 
 #### Exit criteria (measurable)
 
-- [ ] New user can sign up, land in `/app`, sign out, sign back in
+- [ ] New user can sign up, land in `/app`, sign out, sign back in ? requires Clerk keys + prod deploy
 - [ ] Unauthenticated `/app` redirects to login
-- [ ] Auth session persists across refresh (7-day session minimum)
-- [ ] Claude artifact link removed from production
+- [ ] Auth session persists across refresh (7-day session minimum) ? Clerk default; verify after deploy
+- [x] Claude artifact link removed from production
 
 #### Tech stack
 
@@ -294,10 +308,26 @@ Assumes no major regulatory blockers, no App Store review delays (web-first), an
 
 This is the **highest-risk, highest-value** phase. Nothing else matters if chat feels generic or unsafe.
 
+#### Phase 4 prep (parallel workstream #1 — persona + evals)
+
+Can proceed without Clerk keys or live chat API.
+
+- [x] Remap existing exemplars to multi-axis JSONL — now **101** in `docs/evals/cases.jsonl` (persona spec = reader’s guide + ~14 signatures)
+- [x] Eval rubric + **multi-axis taxonomy** (topic, severity, stage, mode, fail_mode, lang, channel) + suite defs — `docs/Zuly-Evals.md`
+- [x] Crisis / safety section: keyword triggers + required 988 / findahelpline behaviors — `docs/Zuly-Evals.md`
+- [x] System prompt draft v1 (Anthropic-ready stub) — `docs/prompts/zuly-system-v1.md`
+- [x] Golden composition **targets** locked: ~100 cases; **~25%** severity `crisis` \| `edge-safety`; cultural depth **deferred**
+- [x] Priority A/B fills to ~100 golden — **101** cases; safety **26/101 (~26%)**; culture deferred — see `docs/evals/README.md`
+- [ ] Scripted eval harness runner (`run.ts` / `score.ts`) — JSONL ready; runner not built yet
+- [ ] Human dry-run: 20 test prompts against prompt v1; target ≥85% voice pass, **100%** crisis pass
+- [ ] Paraphrases / holdouts (~20%) so prompt is not overfit to literal Good text
+
+
 #### Deliverables
 
-- [ ] **Persona system prompt** v1: Comadre Guide anchors, boundaries, never-say rules (proposal ?3)
-- [ ] **50 annotated exemplars** across user states (overwhelmed, motivated, stuck, crisis, celebrating)
+- [x] **Persona system prompt** v1: Comadre Guide anchors, boundaries, never-say rules (`docs/prompts/zuly-system-v1.md`)
+- [x] **JSONL golden library** — `docs/evals/cases.jsonl` + README/index; signatures in persona spec
+- [x] **~100 golden exemplars** across Priority A/B axes (101; Safety ~26%; cultural deferred)
 - [ ] Chat API: `POST /api/chat` ? stream responses via **Anthropic API** (Claude Sonnet class)
 - [ ] Conversation storage: `messages (id, user_id, role, content, channel, created_at)`
 - [ ] **Memory layer:**
@@ -310,7 +340,7 @@ This is the **highest-risk, highest-value** phase. Nothing else matters if chat 
   - Never-diagnose / never-romantic guardrails in system prompt
   - Output moderation pass (secondary check on model output)
 - [ ] **Onboarding flow** (Zuly voice):
-  1. ?Qu? onda? ? name, what season are you in?
+  1. English-primary greeting — name, what season are you in? (Spanish / *mija* only after rapport or user lead)
   2. Pillar interest (pick 1?2 to start)
   3. Rhythm: when do you want check-ins?
   4. First micro-conversation ? seeds memory
@@ -662,7 +692,7 @@ Everything in MVP **plus:**
 | R2 | 2 | Waitlist spam / bot signups | Low | High | Rate limit, honeypot, Turnstile if needed |
 | R3 | 3 | Auth vendor lock-in (Clerk) | Low | Low | Export `user_id` mapping; abstract auth interface |
 | R4 | 4 | Crisis mishandling | **Critical** | Medium | Dedicated eval suite; 100% pass gate; no launch without |
-| R5 | 4 | Persona drift / generic responses | High | High | 50 exemplars; eval rubric; channel-specific adapters |
+| R5 | 4 | Persona drift / generic responses | High | High | ~100 golden exemplars (101 now); eval rubric/taxonomy; channel-specific adapters |
 | R6 | 4 | Memory wrong-user bleed | **Critical** | Low | RLS policies; integration tests; `user_id` on every query |
 | R7 | 4 | LLM API cost overrun | Medium | Medium | Token budgets; Haiku for nudges; conversation summarization |
 | R8 | 5 | Users don't complete Wave | High | High | Shame-free reframes; shorter daily plans; email nudges |
@@ -743,7 +773,7 @@ Week:  1    2    3    4    5    6    7    8    9   10   11   12 ...
 
 | Workstream | Parallel with | Owner | Notes |
 |---|---|---|---|
-| **Persona exemplars + eval rubric** | Phases 1?4 | Dev + copy review | Start Week 1; blocks Phase 4 exit |
+| **Persona exemplars + eval rubric** | Phases 1–4 | Dev + copy review | **Prep #1:** taxonomy/rubric + prompt v1 + **~100 golden achieved** (101 in `docs/evals/`); safety ~26%; cultural depth deferred; paraphrases/holdouts + harness runner still open; blocks Phase 4 exit |
 | **Privacy policy / ToS draft** | Phases 2?6 | Dev + legal template | Don't wait until Phase 7 |
 | **Meta WhatsApp Business verification** | Phases 4?5 | Dev | 1?4 week external delay |
 | **Stripe account + product setup** | Phase 5 | Dev | Test mode during Phase 5 |
