@@ -917,6 +917,89 @@ export async function getDayPlanForDate(
   return row ? rowToDayPlan(row) : null;
 }
 
+/** Compact day-plan row for Plan tab history (shame-free empties allowed). */
+export interface DayPlanHistoryEntry {
+  date: string;
+  status: DayPlanStatus | null;
+  has_plan: boolean;
+  done_count: number;
+  open_count: number;
+  item_count: number;
+  /** Short item texts (first few), for a light UI summary. */
+  summary: string[];
+}
+
+function shiftDateUtc(ymd: string, deltaDays: number): string {
+  const d = new Date(`${ymd}T12:00:00.000Z`);
+  if (Number.isNaN(d.getTime())) return ymd;
+  d.setUTCDate(d.getUTCDate() + deltaDays);
+  return d.toISOString().slice(0, 10);
+}
+
+function summarizeDayPlan(plan: DayPlanRecord): DayPlanHistoryEntry {
+  const doneCount = plan.items.filter((i) => i.done).length;
+  const openCount = plan.items.length - doneCount;
+  return {
+    date: plan.plan_date,
+    status: plan.status,
+    has_plan: true,
+    done_count: doneCount,
+    open_count: openCount,
+    item_count: plan.items.length,
+    summary: plan.items.slice(0, 2).map((i) => {
+      const t = i.text.trim();
+      return t.length > 48 ? `${t.slice(0, 46).trimEnd()}…` : t;
+    }),
+  };
+}
+
+/**
+ * Last N calendar days (UTC), newest-last for chronologic UI.
+ * Days without a day_plan return has_plan=false (empty is ok — no guilt).
+ */
+export async function listDayPlanHistory(
+  db: D1Database,
+  userId: string,
+  days = 7,
+  now: Date = new Date()
+): Promise<DayPlanHistoryEntry[]> {
+  const safeDays = Math.min(Math.max(1, Math.floor(days)), 31);
+  const end = todayDateUtc(now);
+  const start = shiftDateUtc(end, -(safeDays - 1));
+
+  const { results } = await db
+    .prepare(
+      `SELECT id, user_id, wave_id, plan_date, items_json, status, created_at, updated_at
+       FROM day_plans
+       WHERE user_id = ? AND plan_date >= ? AND plan_date <= ?
+       ORDER BY plan_date ASC`
+    )
+    .bind(userId, start, end)
+    .all<DayPlanRow>();
+
+  const byDate = new Map<string, DayPlanHistoryEntry>();
+  for (const row of results ?? []) {
+    byDate.set(row.plan_date, summarizeDayPlan(rowToDayPlan(row)));
+  }
+
+  const out: DayPlanHistoryEntry[] = [];
+  for (let i = 0; i < safeDays; i++) {
+    const date = shiftDateUtc(start, i);
+    out.push(
+      byDate.get(date) ?? {
+        date,
+        status: null,
+        has_plan: false,
+        done_count: 0,
+        open_count: 0,
+        item_count: 0,
+        summary: [],
+      }
+    );
+  }
+  return out;
+}
+
 async function insertWave(
   db: D1Database,
   userId: string,
@@ -1243,6 +1326,10 @@ export function formatActiveWaveInjection(
 
 export function serializeWave(wave: WaveRecord) {
   const weekTpl = getWeekTemplate(wave.primary_pillar, wave.week);
+  const seedPool = weekTpl.seeds;
+  const dayBucket = Math.floor(Date.now() / (24 * 60 * 60 * 1000));
+  const weekSeed =
+    seedPool.length > 0 ? seedPool[dayBucket % seedPool.length]! : '';
   return {
     id: wave.id,
     pillars: wave.pillars,
@@ -1255,6 +1342,8 @@ export function serializeWave(wave: WaveRecord) {
     week_theme: weekTpl.theme,
     week_focus: weekTpl.focus,
     week_check_in: weekTpl.checkInPrompt,
+    /** One rotated seed from the week template — optional Practice with Zuly. */
+    week_seed: weekSeed,
     weeks: serializeCurriculumWeeks(wave.primary_pillar),
   };
 }

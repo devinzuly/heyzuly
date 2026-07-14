@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { SoftNotice } from './SoftNotice';
 
 export interface ChatUiMessage {
   id: string;
@@ -21,6 +22,12 @@ interface ChatPanelProps {
   subtitle?: string;
   /** Bump Wave today panel after Talk → build confirm. */
   onDayPlanConfirmed?: () => void;
+  /** Soft Practice with Zuly starter — prefills the draft; user sends or edits. */
+  practiceDraft?: string | null;
+  /** Bump when reusing the same prompt text so the draft reapplies. */
+  practiceDraftKey?: number;
+  /** Open Help & Crisis sheet from Talk header. */
+  onOpenHelp?: () => void;
 }
 
 interface ProposedItem {
@@ -157,11 +164,19 @@ function isPillarUi(value: unknown): value is PillarId {
   );
 }
 
-export function ChatPanel({ getToken, subtitle, onDayPlanConfirmed }: ChatPanelProps) {
+export function ChatPanel({
+  getToken,
+  subtitle,
+  onDayPlanConfirmed,
+  practiceDraft = null,
+  practiceDraftKey = 0,
+  onOpenHelp,
+}: ChatPanelProps) {
   const [messages, setMessages] = useState<ChatUiMessage[]>(STARTER);
   const [draft, setDraft] = useState('');
   const [sending, setSending] = useState(false);
   const [loadingHistory, setLoadingHistory] = useState(true);
+  const [historyError, setHistoryError] = useState('');
   const [error, setError] = useState('');
   const [pillar, setPillar] = useState<PillarId | null>(null);
   const [waveActive, setWaveActive] = useState(false);
@@ -172,7 +187,18 @@ export function ChatPanel({ getToken, subtitle, onDayPlanConfirmed }: ChatPanelP
   const [offerBuild, setOfferBuild] = useState(false);
   const [building, setBuilding] = useState(false);
   const [buildHint, setBuildHint] = useState('');
+  const [historyTick, setHistoryTick] = useState(0);
   const threadRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const next = practiceDraft?.trim();
+    if (!next || practiceDraftKey <= 0) return;
+    setDraft(next);
+    requestAnimationFrame(() => {
+      const input = document.getElementById('chat-draft') as HTMLInputElement | null;
+      input?.focus();
+    });
+  }, [practiceDraft, practiceDraftKey]);
 
   const applyPrefs = useCallback(
     (
@@ -197,6 +223,8 @@ export function ChatPanel({ getToken, subtitle, onDayPlanConfirmed }: ChatPanelP
     let cancelled = false;
 
     (async () => {
+      setLoadingHistory(true);
+      setHistoryError('');
       try {
         const token = getToken ? await getToken() : null;
         const res = await fetch('/api/chat', {
@@ -208,6 +236,11 @@ export function ChatPanel({ getToken, subtitle, onDayPlanConfirmed }: ChatPanelP
 
         if (!res.ok || !data.ok) {
           // Keep starter greeting if history cannot load (e.g. missing migration).
+          setHistoryError(
+            data.error === 'unauthorized'
+              ? 'Couldn’t load chat — sign in or set CHAT_DEV_BYPASS for local.'
+              : 'Couldn’t load your chat history. You can still write Zuly — or try again.'
+          );
           return;
         }
 
@@ -250,7 +283,11 @@ export function ChatPanel({ getToken, subtitle, onDayPlanConfirmed }: ChatPanelP
           ]);
         }
       } catch {
-        // Network blip — leave starter in place.
+        if (!cancelled) {
+          setHistoryError(
+            'Network blip loading chat. Take a breath — try again when you’re ready.'
+          );
+        }
       } finally {
         if (!cancelled) setLoadingHistory(false);
       }
@@ -259,7 +296,7 @@ export function ChatPanel({ getToken, subtitle, onDayPlanConfirmed }: ChatPanelP
     return () => {
       cancelled = true;
     };
-  }, [applyPrefs, getToken]);
+  }, [applyPrefs, getToken, historyTick]);
 
   const saveWavePrefs = useCallback(
     async (nextPillar: PillarId | null, startWave: boolean) => {
@@ -484,8 +521,8 @@ export function ChatPanel({ getToken, subtitle, onDayPlanConfirmed }: ChatPanelP
           );
           setError(
             data.error === 'unauthorized'
-              ? 'Chat API unauthorized — set CHAT_DEV_BYPASS=true in .dev.vars (local) or sign in with Clerk.'
-              : 'Could not reach Zuly. Try again.'
+              ? 'Chat isn’t authorized yet — sign in, or set CHAT_DEV_BYPASS for local.'
+              : 'Couldn’t reach Zuly just now. Nothing’s lost — try again in a moment.'
           );
           return;
         }
@@ -521,8 +558,8 @@ export function ChatPanel({ getToken, subtitle, onDayPlanConfirmed }: ChatPanelP
         );
         setError(
           res.status === 401
-            ? 'Chat API unauthorized — set CHAT_DEV_BYPASS=true in .dev.vars (local) or sign in with Clerk.'
-            : 'Could not reach Zuly. Try again.'
+            ? 'Chat isn’t authorized yet — sign in, or set CHAT_DEV_BYPASS for local.'
+            : 'Couldn’t reach Zuly just now. Nothing’s lost — try again in a moment.'
         );
         return;
       }
@@ -543,8 +580,8 @@ export function ChatPanel({ getToken, subtitle, onDayPlanConfirmed }: ChatPanelP
           );
           setError(
             event.error === 'unauthorized'
-              ? 'Chat API unauthorized — set CHAT_DEV_BYPASS=true in .dev.vars (local) or sign in with Clerk.'
-              : 'Could not reach Zuly. Try again.'
+              ? 'Chat isn’t authorized yet — sign in, or set CHAT_DEV_BYPASS for local.'
+              : 'Couldn’t reach Zuly just now. Nothing’s lost — try again in a moment.'
           );
           return;
         } else if (event.type === 'done') {
@@ -553,7 +590,9 @@ export function ChatPanel({ getToken, subtitle, onDayPlanConfirmed }: ChatPanelP
             setMessages((prev) =>
               prev.filter((m) => m.id !== assistantId && m.id !== userMsg.id)
             );
-            setError('Could not reach Zuly. Try again.');
+            setError(
+              'Couldn’t finish that reply. Take a breath — try sending again.'
+            );
             return;
           }
           applyPrefs(event.prefs);
@@ -592,13 +631,17 @@ export function ChatPanel({ getToken, subtitle, onDayPlanConfirmed }: ChatPanelP
           if (assistant?.content.trim()) return prev;
           return prev.filter((m) => m.id !== assistantId && m.id !== userMsg.id);
         });
-        setError('Stream ended early — try again.');
+        setError(
+          'That stream cut out early. Your message may still be here — try again.'
+        );
       }
     } catch {
       setMessages((prev) =>
         prev.filter((m) => m.id !== assistantId && m.id !== userMsg.id)
       );
-      setError('Network error — try again.');
+      setError(
+        'Network blip — Zuly didn’t get that. Try again when you’re ready.'
+      );
     } finally {
       setSending(false);
     }
@@ -610,13 +653,22 @@ export function ChatPanel({ getToken, subtitle, onDayPlanConfirmed }: ChatPanelP
         <div className="chat-stub-av" aria-hidden="true">
           Z
         </div>
-        <div>
+        <div className="chat-stub-head-text">
           <h2>Talk to Zuly</h2>
           <p>
             {subtitle ??
               'Phase 4 chat — streams stub (or Anthropic) replies token-by-token.'}
           </p>
         </div>
+        {onOpenHelp ? (
+          <button
+            type="button"
+            className="chat-help-btn"
+            onClick={onOpenHelp}
+          >
+            Help
+          </button>
+        ) : null}
       </div>
 
       <div className="chat-prefs" aria-label="Wave and pillar preferences">
@@ -661,6 +713,18 @@ export function ChatPanel({ getToken, subtitle, onDayPlanConfirmed }: ChatPanelP
         </div>
       </div>
 
+      {loadingHistory ? (
+        <SoftNotice tone="loading">Loading your chat…</SoftNotice>
+      ) : null}
+      {historyError ? (
+        <SoftNotice
+          tone="error"
+          onRetry={() => setHistoryTick((n) => n + 1)}
+        >
+          {historyError}
+        </SoftNotice>
+      ) : null}
+
       <div className="chat-stub-thread" ref={threadRef} role="log" aria-live="polite">
         {loadingHistory ? (
           <div className="bub z chat-typing">
@@ -686,7 +750,21 @@ export function ChatPanel({ getToken, subtitle, onDayPlanConfirmed }: ChatPanelP
         )}
       </div>
 
-      {error ? <p className="chat-stub-error">{error}</p> : null}
+      {error ? (
+        <SoftNotice
+          tone="error"
+          onRetry={() => {
+            setError('');
+            const input = document.getElementById(
+              'chat-draft'
+            ) as HTMLInputElement | null;
+            input?.focus();
+          }}
+          retryLabel="Dismiss & try again"
+        >
+          {error}
+        </SoftNotice>
+      ) : null}
 
       <div className="chat-build-day" aria-label="Build today from chat">
         {offerBuild && !proposed ? (

@@ -38,7 +38,25 @@ export type NudgeSkipReason =
   | 'day_plan_done'
   | 'crisis_recent'
   | 'already_logged'
-  | 'no_rhythm';
+  | 'no_rhythm'
+  | 'nudges_disabled';
+
+/** user_fact `settings.nudges_enabled` — default on when unset. */
+function isNudgesEnabledFact(
+  facts: Array<{ fact_key: string; fact_value: string }>
+): boolean {
+  const raw = facts
+    .find((f) => f.fact_key === 'settings.nudges_enabled')
+    ?.fact_value?.trim()
+    .toLowerCase();
+  if (raw == null || raw === '') return true;
+  return !(
+    raw === 'false' ||
+    raw === '0' ||
+    raw === 'no' ||
+    raw === 'off'
+  );
+}
 
 export interface NudgeDueDecision {
   userId: string;
@@ -182,6 +200,16 @@ export async function decideCheckinNudge(
   const plannedFor = opts?.plannedFor ?? todayDateUtc(opts?.now);
   const channel: NudgeChannel = opts?.channel ?? 'app';
 
+  // Prefer exact key lookup so FACT_LIMIT truncation cannot hide the toggle.
+  const nudgesFactRow = await db
+    .prepare(
+      `SELECT fact_value FROM user_facts
+       WHERE user_id = ? AND fact_key = 'settings.nudges_enabled'
+       LIMIT 1`
+    )
+    .bind(userId)
+    .first<{ fact_value: string }>();
+
   const facts = await listUserFacts(db, userId);
   const { rhythm, hardWindow } = parseRhythm(facts);
   const preferredHour = preferredStartHour(hardWindow ?? undefined);
@@ -201,6 +229,19 @@ export async function decideCheckinNudge(
     wave,
     today,
   };
+
+  const nudgesEnabled = nudgesFactRow
+    ? isNudgesEnabledFact([
+        {
+          fact_key: 'settings.nudges_enabled',
+          fact_value: nudgesFactRow.fact_value,
+        },
+      ])
+    : isNudgesEnabledFact(facts);
+
+  if (!nudgesEnabled) {
+    return { ...base, due: false, skipReason: 'nudges_disabled' };
+  }
 
   if (!wave) {
     return { ...base, due: false, skipReason: 'no_wave' };

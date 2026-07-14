@@ -10,6 +10,7 @@ CLERK_SECRET_KEY=sk_test_replace-with-clerk-secret-key
 # INVITE_REQUIRED=false
 
 # Optional — admin invite grant API (POST /api/invite/grant)
+# Also: npm run invite:grant -- email@example.com  (reads this secret; never prints it)
 INVITE_ADMIN_SECRET=generate-or-paste-invite-admin-secret
 
 # Phase 4 — chat API stub (local only)

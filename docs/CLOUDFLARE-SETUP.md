@@ -242,16 +242,42 @@ Optional preview gate:
 
 ### 6. Invite stub (early access)
 
-Grant an invite (email must match Clerk sign-up):
+Public probe (no secrets): `GET /api/invite/status` → `{ ok, invite_required }`.
+
+Grant an invite (email must match Clerk sign-up). Prefer the CLI so the admin secret stays in `.dev.vars` and is never printed:
 
 ```bash
-curl -X POST https://heyzuly.com/api/invite/grant \
+# Local — pages:dev must be running; INVITE_ADMIN_SECRET in .dev.vars
+npm run invite:grant -- someone@example.com
+
+# Production (secret still read from local .dev.vars; must match Pages secret)
+npm run invite:grant -- someone@example.com --prod
+
+# Custom origin
+npm run invite:grant -- someone@example.com --base https://preview.heyzuly.com
+```
+
+Manual curl (avoid pasting the secret into chat history when you can use the npm script):
+
+```bash
+curl -X POST http://localhost:8788/api/invite/grant \
   -H "Authorization: Bearer YOUR_INVITE_ADMIN_SECRET" \
   -H "Content-Type: application/json" \
   -d "{\"email\":\"user@example.com\"}"
 ```
 
-When `INVITE_REQUIRED` is not set (default), anyone can sign up — fine for local dev.
+When `INVITE_REQUIRED` is not set (default), anyone can sync into `/app` — fine for local dev. Set `INVITE_REQUIRED=true` on preview/prod for soft launch; Sign-up shows an invite tip, AppGate blocks `not_invited` with waitlist + support, and You → Access shows invited vs open.
+
+#### Admin checklist — waitlist → invite
+
+1. Export waitlist: `GET /api/waitlist/export` (Bearer `WAITLIST_EXPORT_SECRET`) or dashboard CSV.
+2. Pick the next email (soft order; no public queue UI yet).
+3. Grant: `npm run invite:grant -- email@example.com` (local) or `--prod`.
+4. Email them privately (Resend still deferred) — “you’re invited; sign up with this exact email.”
+5. Confirm they can open `/app` (Clerk keys required in real env). If they land on early-access gate, email mismatched or invite missing.
+6. Optional: leave a note in your waitlist sheet: `invited_at` + grant status (`granted` / `exists`).
+
+No `/admin/invite` page ships by design — secret-gated CLI + docs only.
 
 ### 7. Preview environment
 
@@ -302,7 +328,7 @@ npm run db:migrate:memory:remote   # after wrangler login
 
 ## Phase 5d — Check-in nudge stubs (no email/SMS send)
 
-Logic only: who is due today from `rhythm.checkin` (`daily_light` / `few_times_week` / `when_open`), soft `rhythm.hard_window` preferred hour, skip if recent crisis user turn or day plan already done. Writes D1 `nudge_log` with `sent_stub` | `skipped` — **never** calls Resend, Twilio, or Meta.
+Logic only: who is due today from `rhythm.checkin` (`daily_light` / `few_times_week` / `when_open`), soft `rhythm.hard_window` preferred hour, skip if `settings.nudges_enabled` is false/0, recent crisis user turn, or day plan already done. Writes D1 `nudge_log` with `sent_stub` | `skipped` — **never** calls Resend, Twilio, or Meta.
 
 | Endpoint | Auth | Behavior |
 |---|---|---|

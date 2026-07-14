@@ -41,8 +41,11 @@ Ordered by leverage for the talk → learn → Wave path. Agent should pick the 
 | 11 | Landing polish (Lighthouse ≥90, stakeholder copy sign-off) | **deferred / skipped for now** (a11y/nav polish shipped; human Lighthouse + copy sign-off before soft launch) | Phase 1.5 draft | N |
 | 12 | Human dry-run: 20 prompts vs prompt v1 (≥85% voice, 100% crisis) | **done / passed** — human dry-run 2026-07-14 — 20/20 pass (voice ≥85%, crisis 100%) | #2 | N |
 | 13 | Expand crisis keyword + hard-fail eval cases | **done** | #2 | N |
+| 14 | AppShell loop strip + soft Practice with Zuly prompts (week check-in / seed) | **done** | #8 / 5a templates | N |
+| 15 | **In-app Help & Crisis sheet** — You + Talk header; 988 / findahelpline / emergency / not-a-therapist; short FAQ | **done** | Crisis API already shipped (#6/#13) | N |
+| 16 | Loading / error polish — warm SoftNotice + retry on Talk / Today / Plan (incl. history fail) | **done** | #14–15 panels | N |
 
-**Shipped 2026-07-14:** #3–#9 + soft-launch survey banks for **all selected pillars** (Self-healing / Meditation / Body / Life) + day-plan branching on `heal.*` / `med.*` / `body.*` / `life.*` + Grow week progress + **Phase 5a 4-week Wave curricula** (`functions/lib/wave-templates.ts`; week advance from `started_at`; Grow theme/focus; chat week-theme inject) + **Wave completion celebration** (auto on week≥4 + `ends_at`; `POST /api/wave/complete`; Grow celebration + soft next Wave; chat inject) + #10 Privacy/ToS drafts + #11 a11y code pass (**#11 human Lighthouse/copy deferred**) + #12 dry-run pass + #13 crisis keywords + 24 holdouts + check-in nudge **logic** stubs (`nudge_log` + `/api/cron/nudges`, no Resend/Twilio) + WhatsApp/SMS length helpers (`functions/lib/channels.ts`, no Meta) + **Phase 5b Talk → build-day** (`POST /api/wave/build-from-talk` + confirm/edit in ChatPanel; persist via `/api/wave/today` `{ items }`). **Next can-do:** hold vendor email/SMS sends; counsel review of Privacy/ToS before Stripe; optional Loop copy / pillar prompt generation.
+**Shipped 2026-07-14:** #3–#9 + soft-launch survey banks for **all selected pillars** (Self-healing / Meditation / Body / Life) + day-plan branching on `heal.*` / `med.*` / `body.*` / `life.*` + Grow week progress + **Phase 5a 4-week Wave curricula** (`functions/lib/wave-templates.ts`; week advance from `started_at`; Grow theme/focus; chat week-theme inject) + **Wave completion celebration** (auto on week≥4 + `ends_at`; `POST /api/wave/complete`; Grow celebration + soft next Wave; chat inject) + #10 Privacy/ToS drafts + #11 a11y code pass (**#11 human Lighthouse/copy deferred**) + #12 dry-run pass + #13 crisis keywords + 24 holdouts + check-in nudge **logic** stubs (`nudge_log` + `/api/cron/nudges`, no Resend/Twilio) + WhatsApp/SMS length helpers (`functions/lib/channels.ts`, no Meta) + **Phase 5b Talk → build-day** (`POST /api/wave/build-from-talk` + confirm/edit in ChatPanel; persist via `/api/wave/today` `{ items }`) + **AppShell Today / Plan / You tabs** + **week day-plan history** (`GET /api/wave/history?days=7` + Plan last-7 UI) + **You Settings/Channels** (check-in reminders via `settings.nudges_enabled`; preferred name → `POST /api/memory`; channels Coming soon shell) + nudges skip when reminders off + **#14 loop strip** (Talk → Learn → Build → Calendar → Check in in AppShell header) + **optional Practice with Zuly** (week `checkInPrompt` / rotated `week_seed` on Today + Talk; prefills Talk draft; Not now = session skip) + **soft-launch invite polish** (`npm run invite:grant`; `GET /api/invite/status`; AppGate early-access + support; sign-up invite tip; You Access row; waitlist→invite admin checklist; Today empty-state CTA) + **#15 Help & Crisis sheet** (header Help, Talk Help, You → Help & crisis; FAQ + support@heyzuly.com) + **#16 SoftNotice loading/error/retry** (Talk chat fail, Today wave load, Plan + history fail). **Next can-do:** hold vendor email/SMS sends; counsel review of Privacy/ToS before Stripe; human Lighthouse gate (#11) may defer into soft launch per playbook caveat; ops: follow [`docs/Soft-Launch-Playbook.md`](./Soft-Launch-Playbook.md) (export→invite once Clerk keys exist).
 
 ### B. Blocked on vendor — hold (list only)
 
@@ -66,12 +69,12 @@ Ordered by leverage for the talk → learn → Wave path. Agent should pick the 
 | 1 | Phase 5a — Wave template (4-week Self-healing) + progress UI | **done** — curricula for all 4 pillars (`wave-templates.ts`); Grow theme/focus; week advance by `started_at`; chat inject; **completion celebration** (auto/`POST /api/wave/complete` + Grow soft next Wave) | Phase 4 memory + prefs + survey | N |
 | 2 | Phase 5b — Talk → build day (structured JSON) + confirm/edit | **done** (stub keywords + survey caps; optional Anthropic JSON extract) | 5a | N |
 | 3 | Phase 5c — ICS calendar export | **done** (stub via today’s day_plan; Talk→build writes same `day_plans`) | 5b / #8 | N |
-| 4 | Phase 5d — Check-in nudges | partial — **logic stubs shipped** (`nudge_log`, cron dry-run); real send backlog | 5b / wave day-plan | Y — **Resend** (email) / Twilio later; Web Push optional |
+| 4 | Phase 5d — Check-in nudges | partial — **logic stubs shipped** (`nudge_log`, cron dry-run, `settings.nudges_enabled` skip); real send backlog | 5b / wave day-plan | Y — **Resend** (email) / Twilio later; Web Push optional |
 | 5 | Phase 7a prep — Privacy/ToS finalized (drafts shipped in §A #10; counsel review before paid launch) | backlog | #10 drafts | N / **counsel required before Stripe** |
 | 6 | Phase 6a — WhatsApp webhook → same chat/memory pipeline | backlog | Phase 4 safety + memory | Y — Meta/Twilio |
 | 7 | Phase 6b — SMS opt-in + STOP | backlog | 6a or parallel | Y — Twilio |
 | 8 | Phase 7b — Stripe annual/monthly + memory paywall | backlog | Soft-launch MVP loop + legal | Y — Stripe |
-| 9 | Soft launch — invite 50–200 waitlist users | backlog | 7b + safety gate | Clerk (invite) |
+| 9 | Soft launch — invite 50–200 waitlist users | backlog (playbook written) | App-only invite gate first; paid Stripe soft launch later | Clerk (invite); see [`Soft-Launch-Playbook.md`](./Soft-Launch-Playbook.md) |
 | 10 | Public launch — open signup + WhatsApp live | backlog | Soft-launch metrics gates | Meta |
 
 **Critical path:** 4 (chat+facts+Wave stub) → 5a–c (loop+ICS) → 7a legal → 7b Stripe → soft launch. Channels (6) overlap after safety; soft launch may ship **app-only**.
@@ -126,6 +129,7 @@ Ordered by leverage for the talk → learn → Wave path. Agent should pick the 
 - [x] D1 `users` + `invites` migration (`migrations/0002_create_users.sql`)
 - [x] `POST /api/users/sync`, `POST /api/users/onboarding`
 - [x] Invite stub: `POST /api/invite/grant` + optional `INVITE_REQUIRED`
+- [x] Soft-launch invite polish: `npm run invite:grant`, `GET /api/invite/status`, AppGate / sign-up tips, You access row, waitlist→invite checklist (`docs/CLOUDFLARE-SETUP.md`)
 - [x] Onboarding AI disclosure modal + crisis link in app chrome
 - [x] Env vars documented (`.env.example`, `.dev.vars.example`, `docs/CLOUDFLARE-SETUP.md`)
 - [ ] Clerk app created + keys set in Cloudflare Pages (user action) — **user-blocked / deferred**
@@ -345,6 +349,7 @@ Assumes no major regulatory blockers, no App Store review delays (web-first), an
 - [x] "Log in" on landing ? real auth (remove Claude artifact link)
 - [x] User record in DB: `users (id, auth_provider_id, email, created_at, onboarding_complete)`
 - [x] Invite flow stub: waitlist email ? manual invite flag (`invites` table + `/api/invite/grant`)
+- [x] Soft-launch invite UX: CLI grant script, public status probe, AppGate / sign-up / You polish, waitlist→invite checklist
 - [x] AI disclosure in onboarding: "Zuly is an AI wellness guide, not a therapist"
 - [x] Crisis resources link persistent in app chrome
 - [ ] Deploy preview env (`preview.heyzuly.com` or CF Pages branch previews) ? docs + env vars; user configures dashboard
@@ -430,6 +435,8 @@ Can proceed without Clerk keys or live chat API.
 - [x] **Soft-launch survey banks:** optional G1/G2 + selected pillar musts (Self-healing S1–S3, Meditation M1–M2, Body B1–B2, Life L1–L3) → season / rhythm / heal.* / med.* / body.* / life.* facts (**Love Languages** not in day-1 — backlog)
 - [x] **Day plan fact branching:** canned templates honor heal / med / body / life survey facts, hard_window timing, season framing (no Anthropic)
 - [x] **ICS calendar export:** `GET /api/wave/today.ics` (`text/calendar`); VEVENTs from today’s items + soft check-in; WaveTodayPanel “Add to calendar”
+- [x] **AppShell tabs:** Today (full `WaveTodayPanel`), Plan (Wave overview + soft complete + last-7 day-plan history), You (facts + Settings/Channels panels + Privacy/Terms); Talk keeps compact Today strip; `CHAT_DEV_BYPASS` / DevAppShell unchanged
+- [x] **Week day-plan history:** `GET /api/wave/history?days=7` (query existing `day_plans`; shame-free empty days)
 - [x] Chat UI stub: AppShell `ChatPanel` posts to `/api/chat`; typing indicator; local `PUBLIC_CHAT_DEV_BYPASS` shell without Clerk
 - [x] Chat UI: persisted message history (load on mount via `GET /api/chat`)
 - [x] Chat UI: streaming replies (ChatPanel consumes SSE deltas)
@@ -481,10 +488,12 @@ Can proceed without Clerk keys or live chat API.
 - [x] **One Wave template:** 4-week **Self-healing** Wave (CBT-lite + expressive writing) beachhead + Meditation / Body / Life curricula in `functions/lib/wave-templates.ts`; week advances from `started_at`
 - [x] Wave progress UI: Grow tab week 1–4 + **week theme/focus** + today completion from `GET /api/wave`
 - [x] **Calendar export:** ICS file generation (`GET /api/wave/today.ics`); Google/Apple import via download (subscribe URL later)
-- [x] **Daily check-in nudge logic stub:** cron dry-run + `nudge_log` (`sent_stub`); skips crisis / day-done / `when_open` (no Resend/Twilio)
+- [x] **Daily check-in nudge logic stub:** cron dry-run + `nudge_log` (`sent_stub`); skips crisis / day-done / `when_open` / `settings.nudges_enabled=false|0` (no Resend/Twilio)
+- [x] **You Settings shell:** check-in reminders toggle → `user_facts.settings.nudges_enabled`; Channels Coming soon (WA/SMS/Email, no Meta); optional preferred name edit
 - [ ] **Daily check-in nudge send:** email via Resend (or PWA push) at preferred soft window — **vendor hold**
 - [ ] Pillar content generation: Zuly generates practice prompts, not pre-recorded audio library
-- [ ] Loop copy in app matches landing: Talk ? Learn ? Build ? Calendar ? Check in
+- [x] Loop copy in app matches landing: Talk → Learn → Build → Calendar → Check in (AppShell header strip)
+- [x] Soft Practice with Zuly prompt from week `checkInPrompt` / seed (Today + Talk; optional; session skip)
 - [x] Wave completion celebration message (Zuly voice; no guilt mechanics) — Grow + `POST /api/wave/complete` + chat inject (ex-070 tone)
 
 #### Exit criteria (measurable)
@@ -579,10 +588,10 @@ Can proceed without Clerk keys or live chat API.
 - [ ] Billing portal: upgrade, cancel, annual default emphasized in UI
 - [x] **Privacy Policy** + **Terms of Service** drafts shipped (`/privacy`, `/terms`) — wellness-not-therapy, AI disclosure, data inventory; **counsel review before paid launch**
 - [ ] Privacy/ToS **final** counsel sign-off (required before Stripe)
-- [ ] Footer + in-app disclaimers finalized; 988 crisis resources
+- [x] Footer + in-app Help & Crisis sheet (988 / findahelpline / emergency / not-a-therapist) — discoverability shipped 2026-07-14; counsel/legal still finalize copy for paid launch
 - [ ] Cookie/consent banner if analytics added (Cloudflare Web Analytics = privacy-friendly default)
 - [ ] Security: API key rotation doc; Supabase RLS policies audited
-- [ ] Soft launch playbook: invite 50?200 waitlist users; feedback channel (email or in-app)
+- [x] Soft launch playbook (ops checklist) — [`docs/Soft-Launch-Playbook.md`](./Soft-Launch-Playbook.md); invite 50–200 waitlist users; feedback via support email (in-app form optional)
 - [ ] Launch metrics dashboard: D1/D7/D30 retention, conversion, Wave completion
 - [ ] App Store: **defer** unless web retention proves out (proposal de-prioritizes)
 - [ ] Remove "beta" badges when public launch criteria met
@@ -891,10 +900,12 @@ Canonical queue: **§ Ordered sequence → A. Can do now**. Top of stack as of 2
 3. ~~Phase 5a — full 4-week Wave template content~~ — **shipped** (`wave-templates.ts` all pillars; Grow theme/focus; week advance; chat inject)
 4. ~~Wave completion celebration (Zuly voice; no guilt)~~ — **shipped** (auto on week≥4 + `ends_at`; `POST /api/wave/complete`; Grow celebration + soft next Wave; chat inject; ex-070 tone)
 5. ~~Soft-launch survey banks (Meditation / Body / Life) + Grow week stub~~ — **shipped**
-6. ~~#11 Lighthouse + copy sign-off~~ — **deferred / skipped for now** (human gate before soft launch; walkthrough in `docs/evals/lighthouse-copy-signoff.md`)
-7. Hold all vendor signups (Clerk, Resend, Anthropic if unset, Stripe, Twilio, Supabase, ConvertKit) — **counsel review of Privacy/ToS before Stripe**; wire Resend/Twilio only after nudge stub is proven
-8. ~~Close #12 — human dry-run~~ — **done / passed** 2026-07-14 (20/20; voice ≥85%, crisis 100%)
-9. ~~Fill holdout paraphrases~~ — **done** (24; `npm run eval:offline` / `eval:holdouts`)
+6. ~~AppShell Today / Plan / You~~ — **shipped** (Today tab + Talk compact strip; Plan overview; You profile stub; mobile tab bar)
+7. ~~#11 Lighthouse + copy sign-off~~ — **deferred / skipped for now** (human gate before soft launch; walkthrough in `docs/evals/lighthouse-copy-signoff.md`)
+8. Hold all vendor signups (Clerk, Resend, Anthropic if unset, Stripe, Twilio, Supabase, ConvertKit) — **counsel review of Privacy/ToS before Stripe**; wire Resend/Twilio only after nudge stub is proven
+9. ~~Close #12 — human dry-run~~ — **done / passed** 2026-07-14 (20/20; voice ≥85%, crisis 100%)
+10. ~~Fill holdout paraphrases~~ — **done** (24; `npm run eval:offline` / `eval:holdouts`)
+11. ~~Soft-launch playbook~~ — **done** ([`docs/Soft-Launch-Playbook.md`](./Soft-Launch-Playbook.md)); execute when Clerk keys + prod migrate ready
 
 ---
 
@@ -906,6 +917,7 @@ Canonical queue: **§ Ordered sequence → A. Can do now**. Top of stack as of 2
 | `docs/Zuly-Entity-Demographic-Proposal.md` | Entity, demographic, strategic decisions |
 | `docs/Onda-Zuly-Brand-Architecture.md` | Brand naming, Cruz deferral, Wave vocabulary |
 | `docs/CLOUDFLARE-SETUP.md` | Pages, Git, wrangler deploy |
+| `docs/Soft-Launch-Playbook.md` | Ops checklist: migrate → deploy → invite → smoke → kill switches |
 | `docs/AI-Wellness-Platform-Research.md` | Regulatory + competitive citations |
 | `docs/Dev-Roadmap.md` | This document — ordered sequence at top |
 

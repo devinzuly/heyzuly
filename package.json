@@ -28,6 +28,7 @@
     "deploy": "npm run deploy:pages",
     "db:migrate:local": "wrangler d1 execute heyzuly-waitlist --local --file=./migrations/0001_create_waitlist.sql && wrangler d1 execute heyzuly-waitlist --local --file=./migrations/0002_create_users.sql && wrangler d1 execute heyzuly-waitlist --local --file=./migrations/0003_create_messages.sql && wrangler d1 execute heyzuly-waitlist --local --file=./migrations/0004_create_user_facts.sql && wrangler d1 execute heyzuly-waitlist --local --file=./migrations/0005_create_waves.sql && wrangler d1 execute heyzuly-waitlist --local --file=./migrations/0006_create_nudge_log.sql",
     "db:migrate:remote": "wrangler d1 execute heyzuly-waitlist --remote --file=./migrations/0001_create_waitlist.sql && wrangler d1 execute heyzuly-waitlist --remote --file=./migrations/0002_create_users.sql && wrangler d1 execute heyzuly-waitlist --remote --file=./migrations/0003_create_messages.sql && wrangler d1 execute heyzuly-waitlist --remote --file=./migrations/0004_create_user_facts.sql && wrangler d1 execute heyzuly-waitlist --remote --file=./migrations/0005_create_waves.sql && wrangler d1 execute heyzuly-waitlist --remote --file=./migrations/0006_create_nudge_log.sql",
+    "invite:grant": "node scripts/invite-grant.mjs",
     "eval:cases": "node scripts/eval-cases.mjs",
     "eval:safety": "node scripts/eval-safety.mjs",
     "eval:offline": "node scripts/eval-cases.mjs --offline && node scripts/eval-safety.mjs",

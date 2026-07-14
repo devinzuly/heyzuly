@@ -197,11 +197,15 @@ Canonical ordered sequence: [`docs/Dev-Roadmap.md`](docs/Dev-Roadmap.md) § **Or
 | Phase 4 onboarding | Micro-flow + optional survey banks for **selected** pillars (Self-healing / Meditation / Body / Life) **shipped** |
 | Phase 4 SSE | Streaming chat **shipped** (`stream: true` / `Accept: text/event-stream`) |
 | Phase 5 Grow stub | Grow tab week 1–4 + today completion + **Wave complete celebration** **shipped** |
+| Phase 5 AppShell tabs | **Today / Plan / You** enabled (Talk compact strip; Plan overview; You profile stub) |
 | Phase 5a curricula | 4-week templates all pillars + week advance + complete/next Wave **shipped** |
 | Phase 5b Talk→build | `POST /api/wave/build-from-talk` + ChatPanel confirm/edit **shipped** |
 | Phase 5d nudge stubs | `nudge_log` + cron dry-run + channel length helpers **shipped** (no vendor send) |
 | Offline evals | `npm run eval:offline` — 113 goldens + 24 holdouts + safety smoke; `eval:holdouts` alone |
 | Human dry-run (#12) | **Passed** 2026-07-14 — 20/20 (voice ≥85%, crisis 100%); see `docs/evals/dry-run.md` |
+| Help & Crisis UX (#15) | In-app sheet — header / Talk / You; 988 + findahelpline + FAQ (**shipped**) |
+| SoftNotice polish (#16) | Warm loading/error + retry on Talk / Today / Plan (**shipped**) |
+| Soft-launch playbook | Ops checklist **shipped** — [`docs/Soft-Launch-Playbook.md`](docs/Soft-Launch-Playbook.md) |
 
 ### Deferred / vendor holds
 
@@ -218,5 +222,5 @@ Canonical ordered sequence: [`docs/Dev-Roadmap.md`](docs/Dev-Roadmap.md) § **Or
 | Supabase/pgvector + mem0 | Vendor-blocked (after D1 facts) |
 | Stripe / Twilio / WhatsApp Meta | Vendor-blocked |
 
-**Unlocked next (no new vendor):** hold vendor email/SMS; counsel review of Privacy/ToS before Stripe. Phase 5a curricula + completion celebration + 5b Talk→build **shipped**. Nudge **logic** stubs + WA/SMS helpers shipped — real email/SMS = Resend/Twilio hold. **#12 passed**. **#11 deferred** until soft-launch prep.
+**Unlocked next (no new vendor):** hold vendor email/SMS; counsel review of Privacy/ToS before Stripe; execute soft launch via [`docs/Soft-Launch-Playbook.md`](docs/Soft-Launch-Playbook.md) once Clerk keys + remote migrate exist (export→invite→smoke). Help & Crisis (#15) + SoftNotice (#16) **shipped**. Phase 5a/5b **shipped**. Nudge **logic** stubs only — real email/SMS = Resend/Twilio hold. **#12 passed**. **#11** may defer into soft launch (playbook §8 caveat) before paid/public spend.
 

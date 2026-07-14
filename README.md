@@ -10,6 +10,7 @@ Landing site and future app for [heyzuly.com](https://heyzuly.com) — a warm AI
 - **Auth + preview app:** Phase 3 — Clerk sign-in at `/sign-in`, protected shell at `/app`
 - **Chat stub:** Phase 4 — `POST /api/chat` (JSON or SSE stream; canned or Anthropic); local bypass without Clerk keys
 - **Wave + ICS:** D1 `waves`/`day_plans` + Talk→build (`POST /api/wave/build-from-talk`) + `GET /api/wave/today.ics` calendar export
+- **Help & Crisis:** In-app sheet from app header **Help**, Talk header, or You → Help & crisis (988, findahelpline, FAQ, support@heyzuly.com)
 
 ## Local development
 
@@ -84,6 +85,9 @@ curl -X POST http://localhost:8788/api/wave \
 
 curl http://localhost:8788/api/wave
 
+# Last 7 day_plans (Plan tab history; shame-free empties)
+curl "http://localhost:8788/api/wave/history?days=7"
+
 curl -X POST http://localhost:8788/api/wave/today \
   -H "Content-Type: application/json" \
   -d "{\"regenerate\":true}"
@@ -119,13 +123,19 @@ curl -X POST http://localhost:8788/api/nudges/run \
   -d "{}"
 
 curl http://localhost:8788/api/nudges
+
+# Soft-launch invite grant (INVITE_ADMIN_SECRET from .dev.vars — never printed)
+npm run invite:grant -- someone@example.com
+# Public probe: curl http://localhost:8788/api/invite/status
 ```
 
 `POST /api/wave/build-from-talk` proposes 1–3 tiny actions from recent chat (or `summary`) using keyword stub templates + survey facts (`heal.energy` caps). Optional Anthropic JSON extract when `ANTHROPIC_API_KEY` is set. Confirm/edit persists via `POST /api/wave/today` with `{ items: [...] }` (or `{ confirm: true, items }` on build-from-talk). In `/app`, use **Build today from this chat** under Talk.
 
 `GET /api/wave/today.ics` returns `text/calendar` for today’s tiny actions (times from `rhythm.hard_window`, durations from `heal.energy`) plus an optional soft Wave check-in when `rhythm.checkin` is scheduled. Same auth as chat (Clerk Bearer or `CHAT_DEV_BYPASS`). In `/app`, use **Add to calendar** on the Wave today panel.
 
-`POST /api/cron/nudges` (alias `POST /api/nudges/run`) evaluates who is due from `rhythm.checkin` + soft `rhythm.hard_window`, skips crisis / day-done / `when_open`, and writes `nudge_log` rows with `sent_stub` (would-send). It does **not** call Resend, Twilio, or Meta. `GET /api/nudges` returns the next-check-in estimate + recent log for the current user.
+`GET /api/wave/history?days=7` returns the last N calendar days (UTC) with done/open counts + short item summaries; days without a plan are included as empty (no guilt). Used by the Plan tab.
+
+`POST /api/cron/nudges` (alias `POST /api/nudges/run`) evaluates who is due from `rhythm.checkin` + soft `rhythm.hard_window`, skips crisis / day-done / `when_open` / `settings.nudges_enabled` false|0, and writes `nudge_log` rows with `sent_stub` (would-send). It does **not** call Resend, Twilio, or Meta. `GET /api/nudges` returns the next-check-in estimate + recent log for the current user. Toggle reminders in **You → Settings** (persisted via `POST /api/memory`).
 
 `POST /api/chat` persists the turn + injects Wave/`user_facts`/active day plan into the reply context; `GET` returns history + prefs. With `stream: true` or `Accept: text/event-stream`, the response is SSE (`meta` → `delta`* → `done`); otherwise JSON `{ ok, reply, mode, … }`. Safety (`functions/lib/safety.ts`) classifies input (`crisis` / `edge-safety` / `jailbreak` / `sexual` / `ok`) before generate and moderates output after — blocked turns use fixed templates (988, hotline, refuse). `mode` may be `crisis`, `edge-safety`, `jailbreak`, `sexual`, `stub`, or `anthropic`. Set `ANTHROPIC_API_KEY` in `.dev.vars` for real model replies. **Never enable `CHAT_DEV_BYPASS` in Cloudflare production.**
 
@@ -281,10 +291,10 @@ src/
 functions/
   api/waitlist/ # POST /api/waitlist, GET /api/waitlist/export
   api/users/    # POST /api/users/sync, /api/users/onboarding
-  api/invite/   # POST /api/invite/grant (admin stub)
+  api/invite/   # GET /api/invite/status; POST /api/invite/grant (admin)
   api/chat.ts   # POST /api/chat (Phase 4 stub)
   api/wave.ts   # GET/POST /api/wave
-  api/wave/     # POST /api/wave/today, POST /api/wave/build-from-talk, GET /api/wave/today.ics
+  api/wave/     # today, history, build-from-talk, today.ics, complete
   lib/          # validation, rate limit, auth, users, chat, safety, waves, ics
 migrations/     # D1 SQL schema (waitlist + users + chat + facts + waves)
 src/pages/app/  # protected preview shell (/app)
@@ -309,7 +319,7 @@ wrangler.toml   # D1 binding + Pages output dir
 - Waitlist form POSTs to `/api/waitlist` with honeypot + rate limiting (5/min/IP)
 - Auth: Clerk at `/sign-in` and `/sign-up`; preview app at `/app` (Phase 3)
 - Chat: `POST`/`GET /api/chat` + D1 persistence + SSE + safety classifier/moderation (Phase 4); local `CHAT_DEV_BYPASS` / `PUBLIC_CHAT_DEV_BYPASS`
-- Wave + day plan: `GET`/`POST /api/wave`, `POST /api/wave/today`, `POST /api/wave/build-from-talk`; ICS export `GET /api/wave/today.ics`
+- Wave + day plan: `GET`/`POST /api/wave`, `GET /api/wave/history`, `POST /api/wave/today`, `POST /api/wave/build-from-talk`; ICS export `GET /api/wave/today.ics`
 - Evals: `npm run eval:offline` (113 goldens + 24 holdouts + safety smoke); holdouts only: `npm run eval:holdouts`; human dry-run: `npm run eval:dry-run` (see `docs/evals/dry-run.md`)
 - Brand is **entity-led** — no founder biography on site
 - No ad trackers on health-related flows
