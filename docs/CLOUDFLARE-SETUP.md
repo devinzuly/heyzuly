@@ -1,6 +1,8 @@
-# Cloudflare setup — Hey Zuly Phase 2 (waitlist + D1)
+# Cloudflare setup — Hey Zuly (waitlist + auth)
 
 Automated setup for Cursor/agents and local development. Minimal manual PowerShell.
+
+**Phase 2:** waitlist + D1 · **Phase 3:** Clerk auth + preview app at `/app`
 
 ---
 
@@ -88,6 +90,10 @@ Set on the Pages project `heyzuly`:
 |---|---|---|
 | `WAITLIST_EXPORT_SECRET` | Yes (for export) | Bearer token for `GET /api/waitlist/export` |
 | `WAITLIST_IP_SALT` | Recommended | Salts IP hashes in D1 |
+| `CLERK_SECRET_KEY` | Yes (Phase 3 auth) | Verifies Clerk sessions in Pages Functions |
+| `INVITE_ADMIN_SECRET` | Optional | Bearer token for `POST /api/invite/grant` |
+| `INVITE_REQUIRED` | Optional | Set `true` to gate sign-up to invited emails only |
+| `PUBLIC_CLERK_PUBLISHABLE_KEY` | Yes (Phase 3 build) | **Build env** on Pages (not a secret) — inlined at `npm run build` |
 
 **Option A — script (after login):**
 
@@ -148,6 +154,101 @@ npm run pages:dev
 ```
 
 Open the URL wrangler prints (usually http://localhost:8788).
+
+---
+
+## Phase 3 — Clerk auth + preview app
+
+### 1. Create Clerk application
+
+1. Sign up at [clerk.com](https://clerk.com) → **Create application** (email + password is fine for preview).
+2. Copy **Publishable key** (`pk_test_…` or `pk_live_…`) and **Secret key** (`sk_test_…`).
+
+### 2. Local env files
+
+| File | Variable | Purpose |
+|---|---|---|
+| `.env` (from `.env.example`) | `PUBLIC_CLERK_PUBLISHABLE_KEY` | Astro build — inlined into `/sign-in`, `/app` client bundles |
+| `.dev.vars` | `CLERK_SECRET_KEY` | Pages Functions — verify sessions at `/api/users/*` |
+| `.dev.vars` | `INVITE_ADMIN_SECRET` | Optional — grant invites via API |
+| `.dev.vars` | `INVITE_REQUIRED` | Optional — `true` blocks non-invited emails |
+
+```bash
+copy .env.example .env
+# edit .env — paste PUBLIC_CLERK_PUBLISHABLE_KEY
+
+# .dev.vars: add CLERK_SECRET_KEY=sk_test_...
+npm run db:migrate:auth:local   # users + invites tables
+npm run pages:dev
+```
+
+### 3. Clerk dashboard paths
+
+Under **Configure → Paths** (or **Account Portal**):
+
+| Setting | Value |
+|---|---|
+| Sign-in URL | `/sign-in` |
+| Sign-up URL | `/sign-up` |
+| After sign-in | `/app` |
+| After sign-up | `/app` |
+
+Under **Configure → Domains** (or **Allowed origins**), add:
+
+- `http://localhost:8788` (Pages dev)
+- `http://localhost:4321` (Astro dev — auth UI only, no API)
+- `https://heyzuly.com`
+- `https://preview.heyzuly.com` (optional branch preview subdomain)
+
+Session duration: Clerk default is fine (7+ days with refresh). No extra config needed for Phase 3 exit criteria.
+
+### 4. D1 auth migration (remote)
+
+After `wrangler login`:
+
+```bash
+npm run db:migrate:auth:remote
+# or full: npm run db:migrate:remote
+```
+
+### 5. Production / preview env (Cloudflare Pages)
+
+**Build variable** (Settings → Environment variables → **Build**):
+
+| Name | Example |
+|---|---|
+| `PUBLIC_CLERK_PUBLISHABLE_KEY` | `pk_live_…` |
+
+**Runtime secrets** (Settings → **Production** / **Preview**):
+
+```bash
+echo sk_live_xxx | npx wrangler pages secret put CLERK_SECRET_KEY --project-name=heyzuly
+echo your-invite-secret | npx wrangler pages secret put INVITE_ADMIN_SECRET --project-name=heyzuly
+```
+
+Optional preview gate:
+
+```bash
+# Dashboard or wrangler — set INVITE_REQUIRED=true on preview only
+```
+
+### 6. Invite stub (early access)
+
+Grant an invite (email must match Clerk sign-up):
+
+```bash
+curl -X POST https://heyzuly.com/api/invite/grant \
+  -H "Authorization: Bearer YOUR_INVITE_ADMIN_SECRET" \
+  -H "Content-Type: application/json" \
+  -d "{\"email\":\"user@example.com\"}"
+```
+
+When `INVITE_REQUIRED` is not set (default), anyone can sign up — fine for local dev.
+
+### 7. Preview environment
+
+- **Branch previews:** Cloudflare Pages auto-creates `*.pages.dev` URLs per PR. Set the same Clerk keys + `PUBLIC_CLERK_PUBLISHABLE_KEY` on the **Preview** environment in Pages settings.
+- **Custom subdomain (optional):** DNS `preview.heyzuly.com` → Pages branch alias; add domain in Clerk allowed origins.
 
 ---
 

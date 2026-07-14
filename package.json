@@ -10,17 +10,26 @@
     "build": "astro build",
     "preview": "astro preview",
     "setup:waitlist": "node scripts/setup-waitlist.mjs",
+    "db:migrate:auth:local": "wrangler d1 execute heyzuly-waitlist --local --file=./migrations/0002_create_users.sql",
+    "db:migrate:auth:remote": "wrangler d1 execute heyzuly-waitlist --remote --file=./migrations/0002_create_users.sql",
     "chrome:detect": "node scripts/detect-heyzuly-chrome.mjs",
     "chrome:heyzuly": "node scripts/open-heyzuly-chrome.mjs https://heyzuly.com",
     "pages:dev": "npm run build && wrangler pages dev dist",
     "pages:dev:open": "node scripts/dev-with-chrome.mjs --mode=pages",
     "deploy:pages": "npm run build && wrangler pages deploy dist --project-name=heyzuly",
     "deploy": "npm run deploy:pages",
-    "db:migrate:local": "wrangler d1 execute heyzuly-waitlist --local --file=./migrations/0001_create_waitlist.sql",
-    "db:migrate:remote": "wrangler d1 execute heyzuly-waitlist --remote --file=./migrations/0001_create_waitlist.sql"
+    "db:migrate:local": "wrangler d1 execute heyzuly-waitlist --local --file=./migrations/0001_create_waitlist.sql && wrangler d1 execute heyzuly-waitlist --local --file=./migrations/0002_create_users.sql",
+    "db:migrate:remote": "wrangler d1 execute heyzuly-waitlist --remote --file=./migrations/0001_create_waitlist.sql && wrangler d1 execute heyzuly-waitlist --remote --file=./migrations/0002_create_users.sql"
   },
   "dependencies": {
-    "astro": "^5.7.0"
+    "@astrojs/react": "^6.0.1",
+    "@clerk/backend": "^3.11.4",
+    "@clerk/clerk-react": "^5.61.9",
+    "@types/react": "^19.2.17",
+    "@types/react-dom": "^19.2.3",
+    "astro": "^5.7.0",
+    "react": "^19.2.7",
+    "react-dom": "^19.2.7"
   },
   "devDependencies": {
     "@cloudflare/workers-types": "^5.20260708.1",

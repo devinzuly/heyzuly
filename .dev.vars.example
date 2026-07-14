@@ -2,3 +2,12 @@
 # Setup copies this to .dev.vars and replaces placeholders — never commit .dev.vars
 WAITLIST_EXPORT_SECRET=generate-or-paste-export-secret
 WAITLIST_IP_SALT=generate-or-paste-ip-salt
+
+# Phase 3 — Clerk auth (server-side only)
+CLERK_SECRET_KEY=sk_test_replace-with-clerk-secret-key
+
+# Optional — invite gate (set to true in production preview)
+# INVITE_REQUIRED=false
+
+# Optional — admin invite grant API (POST /api/invite/grant)
+INVITE_ADMIN_SECRET=generate-or-paste-invite-admin-secret

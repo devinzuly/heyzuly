@@ -1,0 +1,10 @@
+---
+import AppLayout from '../layouts/AppLayout.astro';
+import { AuthSignUpGate } from '../components/auth/AuthSignUpGate';
+
+const clerkPubKey = import.meta.env.PUBLIC_CLERK_PUBLISHABLE_KEY ?? '';
+---
+
+<AppLayout title="Sign up — Hey Zuly" description="Create your Hey Zuly preview account.">
+  <AuthSignUpGate publishableKey={clerkPubKey} client:only="react" />
+</AppLayout>

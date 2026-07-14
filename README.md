@@ -7,6 +7,7 @@ Landing site and future app for [heyzuly.com](https://heyzuly.com) — a warm AI
 - **Production:** Live on Cloudflare Pages (static build from `dist/` + Pages Functions)
 - **Source:** Astro 5 project in `src/` — editable components, entity-led copy
 - **Waitlist:** Phase 2 — `POST /api/waitlist` persists signups to Cloudflare D1
+- **Auth + preview app:** Phase 3 — Clerk sign-in at `/sign-in`, protected shell at `/app`
 
 ## Local development
 
@@ -36,6 +37,16 @@ npm run pages:dev           # build dist/ + wrangler pages dev
 ```
 
 Open the URL wrangler prints (usually [http://localhost:8788](http://localhost:8788)). Submit the waitlist form to exercise `POST /api/waitlist`.
+
+### Auth + preview app (Phase 3)
+
+1. Create a [Clerk](https://clerk.com) application (free tier is fine for preview).
+2. Copy `.env.example` → `.env` and set `PUBLIC_CLERK_PUBLISHABLE_KEY`.
+3. Add `CLERK_SECRET_KEY` to `.dev.vars` (see `.dev.vars.example`).
+4. Run auth migration once: `npm run db:migrate:auth:local` (or full `npm run db:migrate:local`).
+5. Build + Pages dev: `npm run pages:dev` — test `/sign-in`, `/sign-up`, `/app`.
+
+Clerk dashboard → **Paths**: set sign-in URL `/sign-in`, sign-up `/sign-up`, after sign-in `/app`. Add `http://localhost:8788` and `https://heyzuly.com` to allowed origins.
 
 With the heyzuly Chrome profile:
 
@@ -188,8 +199,12 @@ src/
   styles/       # global.css (ported from production)
 functions/
   api/waitlist/ # POST /api/waitlist, GET /api/waitlist/export
-  lib/          # validation, rate limit, IP hash helpers
-migrations/     # D1 SQL schema
+  api/users/    # POST /api/users/sync, /api/users/onboarding
+  api/invite/   # POST /api/invite/grant (admin stub)
+  lib/          # validation, rate limit, auth, users
+migrations/     # D1 SQL schema (waitlist + users)
+src/pages/app/  # protected preview shell (/app)
+src/pages/sign-in.astro, sign-up.astro
 public/         # favicon.svg, robots.txt
 dist/           # build output (deployed to Pages)
 docs/           # roadmap, persona spec, brand docs
@@ -208,6 +223,6 @@ wrangler.toml   # D1 binding + Pages output dir
 ## Notes
 
 - Waitlist form POSTs to `/api/waitlist` with honeypot + rate limiting (5/min/IP)
-- Log in link is a placeholder until Phase 3 auth ships
+- Auth: Clerk at `/sign-in` and `/sign-up`; preview app at `/app` (Phase 3)
 - Brand is **entity-led** — no founder biography on site
 - No ad trackers on health-related flows

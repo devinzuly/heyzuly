@@ -1,0 +1,31 @@
+---
+import '../styles/global.css';
+import '../styles/app.css';
+
+interface Props {
+  title?: string;
+  description?: string;
+}
+
+const {
+  title = 'Hey Zuly',
+  description = 'Zuly — your AI wellness guide.',
+} = Astro.props;
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="description" content={description} />
+    <title>{title}</title>
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <meta name="robots" content="noindex, nofollow" />
+    <meta name="theme-color" content="#FFFCF1" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#0F0C0A" media="(prefers-color-scheme: dark)" />
+  </head>
+  <body>
+    <slot />
+  </body>
+</html>
