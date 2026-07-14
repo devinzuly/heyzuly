@@ -11,3 +11,15 @@ CLERK_SECRET_KEY=sk_test_replace-with-clerk-secret-key
 
 # Optional — admin invite grant API (POST /api/invite/grant)
 INVITE_ADMIN_SECRET=generate-or-paste-invite-admin-secret
+
+# Phase 4 — chat API stub (local only)
+# Allow POST /api/chat without Clerk when CLERK_SECRET_KEY is unset.
+# Never set CHAT_DEV_BYPASS in Cloudflare production/preview.
+CHAT_DEV_BYPASS=true
+
+# Optional — real Anthropic replies (omit to get canned Zuly stub)
+# ANTHROPIC_API_KEY=sk-ant-replace-with-anthropic-key
+
+# Chat + memory + Waves persistence uses the same D1 binding (heyzuly-waitlist).
+# After cloning: npm run db:migrate:local
+# Or stepwise: db:migrate:chat:local → db:migrate:memory:local → db:migrate:waves:local

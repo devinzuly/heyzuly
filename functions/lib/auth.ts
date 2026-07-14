@@ -44,3 +44,29 @@ export async function verifyClerkRequest(
 export function isInviteRequired(env: Env): boolean {
   return env.INVITE_REQUIRED === 'true' || env.INVITE_REQUIRED === '1';
 }
+
+/** Explicit local-only flag — never treat as on by default. */
+export function isChatDevBypass(env: Env): boolean {
+  return env.CHAT_DEV_BYPASS === 'true' || env.CHAT_DEV_BYPASS === '1';
+}
+
+/**
+ * Chat auth:
+ * - If `CLERK_SECRET_KEY` is set → verify Bearer like other user APIs.
+ * - If missing → allow only when `CHAT_DEV_BYPASS=true` (local Pages Functions).
+ * Never enable bypass implicitly; production must set Clerk and omit CHAT_DEV_BYPASS.
+ */
+export async function resolveChatSession(
+  request: Request,
+  env: Env
+): Promise<AuthSession | null> {
+  if (env.CLERK_SECRET_KEY) {
+    return verifyClerkRequest(request, env.CLERK_SECRET_KEY);
+  }
+
+  if (isChatDevBypass(env)) {
+    return { userId: 'dev-bypass', email: 'dev@localhost' };
+  }
+
+  return null;
+}

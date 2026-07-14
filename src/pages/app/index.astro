@@ -3,8 +3,15 @@ import AppLayout from '../../layouts/AppLayout.astro';
 import { AppGate } from '../../components/app/AppGate';
 
 const clerkPubKey = import.meta.env.PUBLIC_CLERK_PUBLISHABLE_KEY ?? '';
+const chatDevBypass =
+  import.meta.env.PUBLIC_CHAT_DEV_BYPASS === 'true' ||
+  import.meta.env.PUBLIC_CHAT_DEV_BYPASS === '1';
 ---
 
 <AppLayout title="App — Hey Zuly" description="Hey Zuly preview app.">
-  <AppGate publishableKey={clerkPubKey} client:only="react" />
+  <AppGate
+    publishableKey={clerkPubKey}
+    chatDevBypass={chatDevBypass}
+    client:only="react"
+  />
 </AppLayout>

@@ -1,80 +1,15 @@
 import { useAuth, useClerk, useUser } from '@clerk/clerk-react';
-import { useCallback, useEffect, useState } from 'react';
-
-interface OnboardingDisclosureProps {
-  onAccepted: () => void;
-}
-
-export function OnboardingDisclosure({ onAccepted }: OnboardingDisclosureProps) {
-  const { getToken } = useAuth();
-  const [submitting, setSubmitting] = useState(false);
-  const [error, setError] = useState('');
-
-  const accept = useCallback(async () => {
-    setSubmitting(true);
-    setError('');
-
-    try {
-      const token = await getToken();
-      const res = await fetch('/api/users/onboarding', {
-        method: 'POST',
-        headers: token ? { Authorization: `Bearer ${token}` } : {},
-      });
-      const data = await res.json();
-
-      if (!res.ok || !data.ok) {
-        setError('Could not save your acknowledgment. Try again.');
-        return;
-      }
-
-      onAccepted();
-    } catch {
-      setError('Network error — try again.');
-    } finally {
-      setSubmitting(false);
-    }
-  }, [getToken, onAccepted]);
-
-  return (
-    <div className="onboard-overlay" role="dialog" aria-modal="true" aria-labelledby="onboard-title">
-      <div className="onboard-card">
-        <p className="onboard-kicker">Before you begin</p>
-        <h2 id="onboard-title">Zuly is an AI wellness guide</h2>
-        <ul className="onboard-list">
-          <li>She supports your growth — she is <strong>not a therapist</strong> or clinician.</li>
-          <li>Conversations are AI-generated and are not confidential like therapy.</li>
-          <li>
-            If you&apos;re in crisis, call or text{' '}
-            <a href="tel:988" className="crisis-link">
-              988
-            </a>{' '}
-            (US) or visit{' '}
-            <a href="https://findahelpline.com" target="_blank" rel="noopener noreferrer">
-              findahelpline.com
-            </a>
-            .
-          </li>
-        </ul>
-        {error ? <p className="onboard-error">{error}</p> : null}
-        <button
-          type="button"
-          className="btn btn-gold onboard-btn"
-          onClick={accept}
-          disabled={submitting}
-        >
-          {submitting ? 'Saving…' : 'I understand — continue'}
-        </button>
-      </div>
-    </div>
-  );
-}
+import { useCallback, useEffect, useState, type ReactNode } from 'react';
+import { ChatPanel } from './ChatPanel';
+import { OnboardingFlow } from './OnboardingFlow';
+import { WaveTodayPanel } from './WaveTodayPanel';
 
 interface UserMenuProps {
   email: string;
+  onSignOut?: () => void;
 }
 
-function UserMenu({ email }: UserMenuProps) {
-  const { signOut } = useClerk();
+function UserMenu({ email, onSignOut }: UserMenuProps) {
   const [open, setOpen] = useState(false);
 
   return (
@@ -91,50 +26,13 @@ function UserMenu({ email }: UserMenuProps) {
         </span>
         <span className="user-email">{email}</span>
       </button>
-      {open ? (
+      {open && onSignOut ? (
         <div className="user-menu-panel" role="menu">
-          <button
-            type="button"
-            role="menuitem"
-            className="user-menu-item"
-            onClick={() => signOut({ redirectUrl: '/' })}
-          >
+          <button type="button" role="menuitem" className="user-menu-item" onClick={onSignOut}>
             Sign out
           </button>
         </div>
       ) : null}
-    </div>
-  );
-}
-
-function ChatStub() {
-  return (
-    <div className="chat-stub">
-      <div className="chat-stub-head">
-        <div className="chat-stub-av" aria-hidden="true">
-          Z
-        </div>
-        <div>
-          <h2>Talk to Zuly</h2>
-          <p>Preview shell — real chat ships in Phase 4.</p>
-        </div>
-      </div>
-      <div className="chat-stub-thread">
-        <div className="bub z">
-          <span className="who">Zuly</span>
-          Good to see you. When chat goes live, this is where we&apos;ll pick up — one small step at a
-          time.
-        </div>
-        <div className="bub u">I&apos;m ready when you are.</div>
-        <div className="bub z">
-          <span className="who">Zuly</span>
-          For now, explore the shell. Your account, onboarding, and safety links are wired.
-        </div>
-      </div>
-      <div className="chat-stub-input" aria-hidden="true">
-        <span className="chat-stub-placeholder">Chat input coming in Phase 4…</span>
-        <span className="chat-stub-send">↑</span>
-      </div>
     </div>
   );
 }
@@ -147,6 +45,132 @@ const NAV_ITEMS = [
   { id: 'you', label: 'You', active: false },
 ];
 
+interface ShellChromeProps {
+  email: string;
+  onSignOut?: () => void;
+  children: ReactNode;
+  banner?: string;
+}
+
+function ShellChrome({ email, onSignOut, children, banner }: ShellChromeProps) {
+  return (
+    <div className="app-shell">
+      {banner ? <p className="app-dev-banner">{banner}</p> : null}
+
+      <header className="app-top">
+        <a href="/app" className="app-brand">
+          <span className="auth-brand-hey">Hey</span>
+          <span className="auth-brand-zuly">Zuly</span>
+        </a>
+        <div className="app-top-right">
+          <a href="tel:988" className="crisis-pill">
+            Crisis: 988
+          </a>
+          <UserMenu email={email} onSignOut={onSignOut} />
+        </div>
+      </header>
+
+      <div className="app-body">
+        <nav className="app-sidebar" aria-label="App sections">
+          {NAV_ITEMS.map((item) => (
+            <button
+              key={item.id}
+              type="button"
+              className={`app-nav-item${item.active ? ' is-active' : ''}`}
+              aria-current={item.active ? 'page' : undefined}
+              disabled={!item.active}
+            >
+              <span className="app-nav-dot" aria-hidden="true" />
+              {item.label}
+            </button>
+          ))}
+        </nav>
+
+        <main className="app-main">{children}</main>
+      </div>
+
+      <footer className="app-foot">
+        <span>Zuly is an AI wellness guide, not a therapist.</span>
+        <nav className="app-foot-links" aria-label="Legal and crisis">
+          <a href="/privacy">Privacy</a>
+          <span aria-hidden="true">·</span>
+          <a href="/terms">Terms</a>
+          <span aria-hidden="true">·</span>
+          <a href="https://findahelpline.com" target="_blank" rel="noopener noreferrer">
+            Crisis resources
+          </a>
+        </nav>
+      </footer>
+    </div>
+  );
+}
+
+function hasOnboardingCompleteFact(
+  prefs: { facts?: Array<{ key: string; value: string }> } | null | undefined
+): boolean {
+  return Boolean(
+    prefs?.facts?.some(
+      (f) => f.key === 'onboarding.complete' && (f.value === '1' || f.value === 'true')
+    )
+  );
+}
+
+/** Local shell without Clerk — requires CHAT_DEV_BYPASS on the API. */
+export function DevAppShell() {
+  const [gateReady, setGateReady] = useState(false);
+  const [needsOnboarding, setNeedsOnboarding] = useState(true);
+  const [chatKey, setChatKey] = useState(0);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    (async () => {
+      try {
+        const res = await fetch('/api/memory', { method: 'GET' });
+        const data = await res.json();
+        if (cancelled) return;
+
+        if (res.ok && data.ok && hasOnboardingCompleteFact(data.prefs)) {
+          setNeedsOnboarding(false);
+        }
+      } catch {
+        // Show onboarding if we cannot confirm completion.
+      } finally {
+        if (!cancelled) setGateReady(true);
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  const onOnboardingComplete = useCallback(() => {
+    setNeedsOnboarding(false);
+    setChatKey((k) => k + 1);
+  }, []);
+
+  if (!gateReady) {
+    return <div className="app-loading">Setting up your space…</div>;
+  }
+
+  return (
+    <ShellChrome
+      email="dev@localhost"
+      banner="Dev bypass — no Clerk. API must have CHAT_DEV_BYPASS=true in .dev.vars."
+    >
+      {needsOnboarding ? (
+        <OnboardingFlow onComplete={onOnboardingComplete} />
+      ) : null}
+      {!needsOnboarding ? <WaveTodayPanel refreshKey={chatKey} /> : null}
+      <ChatPanel
+        key={chatKey}
+        subtitle="Local chat stub (no Clerk). Crisis keywords route to 988; Anthropic optional."
+      />
+    </ShellChrome>
+  );
+}
+
 export function AppShell() {
   const { isLoaded, isSignedIn, getToken } = useAuth();
   const { signOut } = useClerk();
@@ -154,6 +178,7 @@ export function AppShell() {
   const [gateReady, setGateReady] = useState(false);
   const [needsOnboarding, setNeedsOnboarding] = useState(false);
   const [inviteBlocked, setInviteBlocked] = useState(false);
+  const [chatKey, setChatKey] = useState(0);
 
   useEffect(() => {
     if (!isLoaded || !isSignedIn) {
@@ -196,6 +221,11 @@ export function AppShell() {
     };
   }, [isLoaded, isSignedIn, getToken]);
 
+  const onOnboardingComplete = useCallback(() => {
+    setNeedsOnboarding(false);
+    setChatKey((k) => k + 1);
+  }, []);
+
   if (!isLoaded) {
     return <div className="app-loading">Loading…</div>;
   }
@@ -236,51 +266,14 @@ export function AppShell() {
   const email = user?.primaryEmailAddress?.emailAddress ?? 'you';
 
   return (
-    <div className="app-shell">
+    <ShellChrome email={email} onSignOut={() => signOut({ redirectUrl: '/' })}>
       {needsOnboarding ? (
-        <OnboardingDisclosure onAccepted={() => setNeedsOnboarding(false)} />
+        <OnboardingFlow getToken={getToken} onComplete={onOnboardingComplete} />
       ) : null}
-
-      <header className="app-top">
-        <a href="/app" className="app-brand">
-          <span className="auth-brand-hey">Hey</span>
-          <span className="auth-brand-zuly">Zuly</span>
-        </a>
-        <div className="app-top-right">
-          <a href="tel:988" className="crisis-pill">
-            Crisis: 988
-          </a>
-          <UserMenu email={email} />
-        </div>
-      </header>
-
-      <div className="app-body">
-        <nav className="app-sidebar" aria-label="App sections">
-          {NAV_ITEMS.map((item) => (
-            <button
-              key={item.id}
-              type="button"
-              className={`app-nav-item${item.active ? ' is-active' : ''}`}
-              aria-current={item.active ? 'page' : undefined}
-              disabled={!item.active}
-            >
-              <span className="app-nav-dot" aria-hidden="true" />
-              {item.label}
-            </button>
-          ))}
-        </nav>
-
-        <main className="app-main">
-          <ChatStub />
-        </main>
-      </div>
-
-      <footer className="app-foot">
-        <span>Zuly is an AI wellness guide, not a therapist.</span>
-        <a href="https://findahelpline.com" target="_blank" rel="noopener noreferrer">
-          Crisis resources
-        </a>
-      </footer>
-    </div>
+      {!needsOnboarding ? (
+        <WaveTodayPanel getToken={getToken} refreshKey={chatKey} />
+      ) : null}
+      <ChatPanel key={chatKey} getToken={getToken} />
+    </ShellChrome>
   );
 }
