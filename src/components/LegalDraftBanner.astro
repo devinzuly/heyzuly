@@ -1,0 +1,14 @@
+---
+interface Props {
+  doc: 'Privacy Policy' | 'Terms of Service';
+}
+const { doc } = Astro.props;
+---
+
+<aside class="legal-draft" role="note">
+  <p>
+    <strong>Draft.</strong> This {doc} is a working draft for soft-launch prep. It is
+    <em>not</em> legal advice and has <em>not</em> been sealed by counsel. Have a qualified
+    attorney review it before any Stripe billing or paid public launch.
+  </p>
+</aside>

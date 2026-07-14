@@ -4,13 +4,14 @@
       <h2>Be first to meet <em>Zuly</em>.</h2>
       <p>We're opening early access soon. Leave your email and we'll bring you in — gently, one step at a time.</p>
       <form class="join" id="joinForm" novalidate>
+        <label class="sr-only" for="email">Email address</label>
         <input
           type="email"
           id="email"
           name="email"
           placeholder="you@email.com"
-          aria-label="Email address"
           autocomplete="email"
+          inputmode="email"
           required
         />
         <!-- Honeypot: hidden from users, bots often fill this -->
@@ -55,8 +56,8 @@
     if (!f || !t || !e) return;
 
     var messages = {
-      invalid_email: 'A real email — try again 🙂',
-      duplicate: "You're already on the list — we'll be in touch soon. ✦",
+      invalid_email: 'Enter a real email — try again.',
+      duplicate: "You're already on the list — we'll be in touch soon.",
       rate_limited: 'Too many tries — wait a minute and try again.',
       network: "Couldn't reach us — check your connection and try again.",
       server_error: 'Something went wrong — try again in a moment.',
@@ -72,6 +73,7 @@
       var v = (e.value || '').trim();
       if (!v || v.indexOf('@') < 1) {
         setStatus('error', messages.invalid_email);
+        e.focus();
         return;
       }
 
@@ -101,15 +103,17 @@
 
           if (res.ok && data.ok) {
             f.style.display = 'none';
-            setStatus('success', data.message || "You're in. We'll be in touch soon. ✦");
+            setStatus('success', data.message || "You're in. We'll be in touch soon.");
             return;
           }
 
           var err = data && data.error ? data.error : 'server_error';
           setStatus('error', messages[err] || messages.server_error);
+          e.focus();
         })
         .catch(function () {
           setStatus('error', messages.network);
+          e.focus();
         })
         .finally(function () {
           if (btn && f.style.display !== 'none') {

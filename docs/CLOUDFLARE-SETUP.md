@@ -2,7 +2,7 @@
 
 Automated setup for Cursor/agents and local development. Minimal manual PowerShell.
 
-**Phase 2:** waitlist + D1 · **Phase 3:** Clerk auth + preview app at `/app`
+**Phase 2:** waitlist + D1 · **Phase 3:** Clerk auth + preview app at `/app` · **Phase 4:** `POST /api/chat` stub
 
 ---
 
@@ -94,6 +94,9 @@ Set on the Pages project `heyzuly`:
 | `INVITE_ADMIN_SECRET` | Optional | Bearer token for `POST /api/invite/grant` |
 | `INVITE_REQUIRED` | Optional | Set `true` to gate sign-up to invited emails only |
 | `PUBLIC_CLERK_PUBLISHABLE_KEY` | Yes (Phase 3 build) | **Build env** on Pages (not a secret) — inlined at `npm run build` |
+| `ANTHROPIC_API_KEY` | Optional (Phase 4) | Real chat replies; omit → canned stub |
+| `CHAT_DEV_BYPASS` | **Local only** | Allow `/api/chat` without Clerk when `CLERK_SECRET_KEY` unset — **never set in production** |
+| `PUBLIC_CHAT_DEV_BYPASS` | **Local build only** | Render `/app` chat shell without Clerk publishable key |
 
 **Option A — script (after login):**
 
@@ -169,7 +172,10 @@ Open the URL wrangler prints (usually http://localhost:8788).
 | File | Variable | Purpose |
 |---|---|---|
 | `.env` (from `.env.example`) | `PUBLIC_CLERK_PUBLISHABLE_KEY` | Astro build — inlined into `/sign-in`, `/app` client bundles |
+| `.env` | `PUBLIC_CHAT_DEV_BYPASS` | Local only — `/app` without Clerk UI |
 | `.dev.vars` | `CLERK_SECRET_KEY` | Pages Functions — verify sessions at `/api/users/*` |
+| `.dev.vars` | `CHAT_DEV_BYPASS` | Local only — `/api/chat` without Clerk when secret unset |
+| `.dev.vars` | `ANTHROPIC_API_KEY` | Optional — real Anthropic replies |
 | `.dev.vars` | `INVITE_ADMIN_SECRET` | Optional — grant invites via API |
 | `.dev.vars` | `INVITE_REQUIRED` | Optional — `true` blocks non-invited emails |
 
@@ -252,6 +258,46 @@ When `INVITE_REQUIRED` is not set (default), anyone can sign up — fine for loc
 
 ---
 
+## Phase 4 — Chat API stub (local without Clerk)
+
+`POST /api/chat` accepts `{ "messages": [{ "role", "content" }], "wave"?, "memory"? }`.
+On success it persists the last user turn + assistant reply in D1 (`conversations` + `messages`), upserts Wave/memory into `user_facts`, and injects known facts into the stub/Anthropic system context.
+
+`GET /api/chat` returns recent messages + `prefs` (Wave + facts) for the authenticated / bypass user (`?limit=` optional, default 50).
+
+`GET`/`POST /api/memory` reads or upserts `user_facts` / Wave prefs without sending a chat turn.
+
+| Auth | Behavior |
+|---|---|
+| `CLERK_SECRET_KEY` set | Require `Authorization: Bearer <Clerk JWT>` |
+| Secret unset + `CHAT_DEV_BYPASS=true` | Allow unauthenticated local stub (`user_id=dev-bypass`) |
+| Neither | `401 unauthorized` |
+
+| Model key | Behavior |
+|---|---|
+| No `ANTHROPIC_API_KEY` | Canned Zuly-voiced stub; safety classifier may return crisis / edge / refuse templates before stub |
+| Key set | Anthropic Messages API + embedded system prompt v1; same input classify + output moderation |
+
+**Safety (`functions/lib/safety.ts`):** Before generate, classify user text as `crisis` \| `edge-safety` \| `jailbreak` \| `sexual` \| `ok` (keyword/phrase rules aligned with eval suite; figurative “die of embarrassment” etc. skipped). Blocked categories return a fixed template (988 / thehotline / NEDA / refuse). After generate, scan the reply for diagnosis claims, meds dosing, method detail, romantic engagement, or jailbreak compliance — on fail, replace with the safe template. Applies to both JSON and SSE paths. Smoke: `npm run eval:safety` (also chained from `eval:offline`).
+
+**Local UI:** set `PUBLIC_CHAT_DEV_BYPASS=true` in `.env`, rebuild, open `/app`.
+
+**D1 chat tables (once):**
+
+```bash
+npm run db:migrate:chat:local      # conversations + messages
+npm run db:migrate:memory:local    # user_facts (Wave/pillar prefs)
+# or full stack: npm run db:migrate:local
+npm run db:migrate:chat:remote
+npm run db:migrate:memory:remote   # after wrangler login
+```
+
+**Production:** do **not** set `CHAT_DEV_BYPASS` or `PUBLIC_CHAT_DEV_BYPASS`. Use Clerk + optional `ANTHROPIC_API_KEY` as a Pages secret. Run chat + memory remote migrates before relying on history/prefs.
+
+**Streaming:** `POST /api/chat` with `"stream": true` or `Accept: text/event-stream` returns SSE (`data: {"type":"meta"| "delta"| "done"| "error",…}`). Default remains JSON `{ ok, reply, mode, persisted, prefs, stream: false }` for curl.
+
+---
+
 ## Manual D1 queries
 
 ```bash
@@ -273,8 +319,10 @@ curl -H "Accept: text/csv" -H "Authorization: Bearer YOUR_EXPORT_SECRET" https:/
 |---|---|
 | `npm run setup:waitlist` | Full idempotent setup (Node, cross-platform) |
 | `scripts/setup-waitlist.ps1` | Windows wrapper → same Node script |
-| `npm run db:migrate:local` | Local D1 only |
-| `npm run db:migrate:remote` | Remote D1 only (needs login) |
+| `npm run db:migrate:local` | Local D1 (waitlist + auth + chat messages) |
+| `npm run db:migrate:remote` | Remote D1 (needs login) |
+| `npm run db:migrate:chat:local` | Local D1: `conversations` + `messages` only |
+| `npm run db:migrate:chat:remote` | Remote D1: chat tables only |
 | `npm run pages:dev` | Build + `wrangler pages dev dist` |
 | `npm run deploy:pages` | Build + `wrangler pages deploy` |
 

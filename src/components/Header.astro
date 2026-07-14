@@ -3,16 +3,59 @@ import Brand from './Brand.astro';
 import ThemeToggle from './ThemeToggle.astro';
 ---
 
+<a class="skip-link" href="#top">Skip to content</a>
 <header class="nav">
   <div class="wrap nav-in">
-    <Brand />
-    <nav class="nav-links">
+    <Brand href="/" />
+    <nav class="nav-links" id="site-nav" aria-label="Primary">
       <a class="hidesm" href="#pillars">Pillars</a>
       <a class="hidesm" href="#how">How it works</a>
       <a class="hidesm" href="#channels">Text her</a>
-      <ThemeToggle />
+      <a class="hidesm nav-legal" href="/privacy">Privacy</a>
+      <a class="hidesm nav-legal" href="/terms">Terms</a>
       <a class="nav-login" href="/sign-in">Log in</a>
       <a class="btn btn-primary" href="#join">Join the waitlist</a>
     </nav>
+    <div class="nav-end">
+      <ThemeToggle />
+      <button
+        type="button"
+        class="nav-menu-btn"
+        id="navMenuBtn"
+        aria-expanded="false"
+        aria-controls="site-nav"
+        aria-label="Open menu"
+      >
+        Menu
+      </button>
+    </div>
   </div>
 </header>
+
+<script>
+  (function () {
+    var btn = document.getElementById('navMenuBtn');
+    var nav = document.getElementById('site-nav');
+    if (!btn || !nav) return;
+
+    function setOpen(open) {
+      nav.classList.toggle('is-open', open);
+      btn.setAttribute('aria-expanded', open ? 'true' : 'false');
+      btn.setAttribute('aria-label', open ? 'Close menu' : 'Open menu');
+      btn.textContent = open ? 'Close' : 'Menu';
+    }
+
+    btn.addEventListener('click', function () {
+      setOpen(!nav.classList.contains('is-open'));
+    });
+
+    nav.addEventListener('click', function (ev) {
+      var t = ev.target;
+      if (t && t.tagName === 'A') setOpen(false);
+    });
+
+    window.addEventListener('keydown', function (ev) {
+      if (ev.key === 'Escape') setOpen(false);
+    });
+  })();
+</script>

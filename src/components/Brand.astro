@@ -1,3 +1,10 @@
-<a class="brand" href="#top" aria-label="Hey Zuly — home">
+---
+interface Props {
+  href?: string;
+}
+const { href = '/' } = Astro.props;
+---
+
+<a class="brand" href={href} aria-label="Hey Zuly — home">
   <span class="hey">Hey</span><span class="zuly">Zuly</span>
 </a>

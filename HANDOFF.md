@@ -109,7 +109,8 @@ See `docs/AI-Wellness-Platform-Research.md` for citations.
 - [ ] Zuly chat / memory / pillar engine
 - [ ] WhatsApp / SMS integrations
 - [ ] App store presence
-- [ ] Privacy policy, terms, HIPAA-adjacent compliance docs
+- [x] Privacy policy + Terms **drafts** (`/privacy`, `/terms`) — counsel review before paid launch / Stripe
+- [ ] Privacy/ToS counsel-final + HIPAA-adjacent review (do **not** claim HIPAA)
 - [ ] Analytics beyond Cloudflare Web Analytics (no ad pixels — by design)
 
 ---
@@ -183,18 +184,33 @@ npx wrangler pages deploy dist
 
 ---
 
-## Active deferred backlog (2026-07-14)
+## Active state (2026-07-14)
 
-Canonical phase checklist: `docs/Dev-Roadmap.md`. These items are **explicitly deferred** (do not start unless unlocked):
+Canonical ordered sequence: [`docs/Dev-Roadmap.md`](docs/Dev-Roadmap.md) § **Ordered sequence**.
+
+| Area | Status |
+|---|---|
+| Phase 2 waitlist | Done (prod verified) |
+| Phase 3 Clerk | Coded; **vendor-blocked** on keys + prod smoke |
+| Phase 4 chat | Stub + D1 messages + history UI; `CHAT_DEV_BYPASS` works |
+| Phase 4 memory | D1 `user_facts` + Wave/pillar inject **shipped** |
+| Phase 4 onboarding | Micro-flow + optional Self-healing survey (G1/G2/S1–S3) **shipped** |
+| Phase 4 SSE | Streaming chat **shipped** (`stream: true` / `Accept: text/event-stream`) |
+| Offline evals | `npm run eval:offline` — 101 goldens |
+
+### Deferred / vendor holds
 
 | Item | Status |
 |---|---|
 | Exemplar paraphrases / holdouts (~20%) | Deferred |
-| Eval harness — **live** model / judge | Deferred (offline library gates shipped: `npm run eval:offline`) |
-| Skipped themes: in-laws spiral; sibling triangulation; mild-illness lazy-day guilt; false-promise memory claim | Deferred |
-| Cultural depth suite (Spanish preference, bilingual switch, Spanish crisis) | Deferred |
-| Resend waitlist confirmation email | Deferred — do not implement now |
-| Clerk keys + Phase 3 prod smoke | User-blocked / deferred |
+| Eval harness — **live** model / judge | Deferred (needs Anthropic) |
+| Skipped golden themes | Deferred |
+| Cultural depth suite | Deferred |
+| **Love Languages module** | **Deferred / Backlog** — optional Life deep-dive, conversational, multi-preference, never day-1, never framed as science; elaborate later (see `docs/Onboarding-Survey-Spec.md` §4) |
+| Resend / ConvertKit email | Vendor-blocked |
+| Clerk keys + Phase 3 prod smoke | Vendor-blocked |
+| Supabase/pgvector + mem0 | Vendor-blocked (after D1 facts) |
+| Stripe / Twilio / WhatsApp Meta | Vendor-blocked |
 
-**Unlocked next (no Resend/Clerk):** continue Phase 4 prep — human dry-run against prompt v1, chat API stub, or memory schema design.
+**Unlocked next (no new vendor):** Landing polish (#11) / human dry-run (#12). Privacy/ToS drafts shipped (`/privacy`, `/terms`) — **counsel review before paid launch**. ICS export shipped (`GET /api/wave/today.ics`).
 

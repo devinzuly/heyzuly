@@ -1,21 +1,33 @@
-<button class="theme-toggle" id="tt" aria-label="Toggle light/dark">◐</button>
+<button type="button" class="theme-toggle" id="tt" aria-label="Switch to dark theme" aria-pressed="false">◐</button>
 
 <script>
   (function () {
     var root = document.documentElement;
     var btn = document.getElementById('tt');
-    btn &&
-      btn.addEventListener('click', function () {
-        var cur = root.getAttribute('data-theme');
-        var next =
-          cur === 'dark'
-            ? 'light'
-            : cur === 'light'
-              ? 'dark'
-              : window.matchMedia('(prefers-color-scheme: dark)').matches
-                ? 'light'
-                : 'dark';
-        root.setAttribute('data-theme', next);
-      });
+    if (!btn) return;
+
+    function syncLabel() {
+      var cur = root.getAttribute('data-theme');
+      var isDark =
+        cur === 'dark' ||
+        (cur !== 'light' && window.matchMedia('(prefers-color-scheme: dark)').matches);
+      btn.setAttribute('aria-pressed', isDark ? 'true' : 'false');
+      btn.setAttribute('aria-label', isDark ? 'Switch to light theme' : 'Switch to dark theme');
+    }
+
+    syncLabel();
+    btn.addEventListener('click', function () {
+      var cur = root.getAttribute('data-theme');
+      var next =
+        cur === 'dark'
+          ? 'light'
+          : cur === 'light'
+            ? 'dark'
+            : window.matchMedia('(prefers-color-scheme: dark)').matches
+              ? 'light'
+              : 'dark';
+      root.setAttribute('data-theme', next);
+      syncLabel();
+    });
   })();
 </script>

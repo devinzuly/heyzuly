@@ -1,0 +1,85 @@
+<!DOCTYPE html><html lang="en"> <head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="description" content="Draft privacy policy for Hey Zuly — how we handle waitlist, account, chat, and wellness data. Counsel review required before paid launch."><title>Privacy Policy (Draft) — Hey Zuly</title><link rel="icon" href="/favicon.svg" type="image/svg+xml"><link rel="canonical" href="https://heyzuly.com/privacy/"><meta name="theme-color" content="#FFFCF1" media="(prefers-color-scheme: light)"><meta name="theme-color" content="#0F0C0A" media="(prefers-color-scheme: dark)"><meta property="og:type" content="website"><meta property="og:site_name" content="Zuly"><meta property="og:url" content="https://heyzuly.com/privacy/"><meta property="og:title" content="Privacy Policy (Draft) — Hey Zuly"><meta property="og:description" content="Draft privacy policy for Hey Zuly — how we handle waitlist, account, chat, and wellness data. Counsel review required before paid launch."><meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="Privacy Policy (Draft) — Hey Zuly"><meta name="twitter:description" content="Draft privacy policy for Hey Zuly — how we handle waitlist, account, chat, and wellness data. Counsel review required before paid launch."><link rel="stylesheet" href="/_astro/index.Clp3CBup.css"></head> <body>  <header class="nav"> <div class="wrap nav-in"> <a class="brand" href="/" aria-label="Hey Zuly — home"> <span class="hey">Hey</span><span class="zuly">Zuly</span> </a> <nav class="nav-links" aria-label="Legal"> <a href="/privacy" aria-current="page">Privacy</a> <a href="/terms">Terms</a> <button type="button" class="theme-toggle" id="tt" aria-label="Switch to dark theme" aria-pressed="false">◐</button> <script type="module">(function(){var a=document.documentElement,e=document.getElementById("tt");if(!e)return;function i(){var t=a.getAttribute("data-theme"),r=t==="dark"||t!=="light"&&window.matchMedia("(prefers-color-scheme: dark)").matches;e.setAttribute("aria-pressed",r?"true":"false"),e.setAttribute("aria-label",r?"Switch to light theme":"Switch to dark theme")}i(),e.addEventListener("click",function(){var t=a.getAttribute("data-theme"),r=t==="dark"?"light":t==="light"?"dark":window.matchMedia("(prefers-color-scheme: dark)").matches?"light":"dark";a.setAttribute("data-theme",r),i()})})();</script> <a class="nav-login" href="/">Home</a> </nav> </div> </header> <main class="legal-page"> <div class="wrap legal-inner"> <p class="skick">Legal · Draft</p> <h1 class="legal-h">Privacy Policy</h1> <p class="legal-meta">Last updated: July 14, 2026 · Applies to heyzuly.com and the Hey Zuly app</p> <aside class="legal-draft" role="note"> <p> <strong>Draft.</strong> This Privacy Policy is a working draft for soft-launch prep. It is
+<em>not</em> legal advice and has <em>not</em> been sealed by counsel. Have a qualified
+    attorney review it before any Stripe billing or paid public launch.
+</p> </aside> <div class="legal-body"> <h2>1. Who we are</h2> <p>
+Hey Zuly (“Zuly,” “we,” “us”) operates an AI wellness guide at
+<a href="https://heyzuly.com">heyzuly.com</a>. Zuly is a programmed persona that offers
+          support for meditation, self-healing reflection, gentle body habits, and everyday life
+          guidance. <strong>She is not a therapist, clinician, or medical device</strong>, and
+          conversations with Zuly are not therapy, counseling, diagnosis, or medical treatment.
+</p> <h2>2. What this policy covers</h2> <p>
+This draft describes personal data we may collect when you join the waitlist, create an
+          account, chat with Zuly, or use Wave / day-plan features. It will evolve as product and
+          vendors go live. It is written for honesty during soft-launch prep — not as a finished,
+          counsel-approved policy.
+</p> <h2>3. Not a HIPAA product</h2> <p>
+Hey Zuly is a consumer wellness product. We do <strong>not</strong> claim to be a HIPAA
+          covered entity or business associate, and we do <strong>not</strong> offer HIPAA-compliant
+          medical records services. Do not use Zuly to store information you only want handled under
+          a clinical privacy regime. If you need clinical care, contact a licensed provider or local
+          emergency services.
+</p> <h2>4. Information we collect</h2> <p>Depending on how you use the product, we may collect:</p> <ul> <li> <strong>Waitlist email</strong> — when you join the waitlist (and optional honeypot /
+            rate-limit metadata for abuse prevention).
+</li> <li> <strong>Account data</strong> — if you use signed-in access, account identifiers and
+            profile details provided through our auth provider (when Clerk is configured), such as
+            email and user id.
+</li> <li> <strong>Chat messages</strong> — what you send to Zuly and what Zuly replies, stored so
+            conversations can continue across sessions.
+</li> <li> <strong>Memory facts (<code>user_facts</code>)</strong> — short preference and context
+            notes we retain to personalize guidance (for example, pillar focus, rhythm, onboarding
+            answers).
+</li> <li> <strong>Waves and day plans</strong> — Wave selections and structured day plans
+            (<code>waves</code> / <code>day_plans</code>), including calendar export requests when you
+            download an ICS file.
+</li> <li> <strong>Technical data</strong> — routine logs such as timestamps, approximate request
+            metadata, and error diagnostics needed to run and secure the service.
+</li> </ul> <h2>5. How we use information</h2> <ul> <li>Provide and improve the wellness guide, memory, and Wave experience</li> <li>Authenticate you when accounts are enabled</li> <li>Communicate about waitlist, invites, and (later) product updates you request</li> <li>Operate safety features (for example, crisis resource routing when prompts suggest acute risk)</li> <li>Prevent abuse, spam, and attempts to jailbreak the system for harm</li> <li>Comply with law and enforce our Terms</li> </ul> <p>
+We do not sell your wellness conversations to advertisers, and we do not run ad-tracking
+          pixels on your journal or chat content.
+</p> <h2>6. Where data is hosted</h2> <p>
+The site and APIs are built to run on <strong>Cloudflare</strong> (Pages / Workers) with
+          application data in <strong>Cloudflare D1</strong>. Processing happens in Cloudflare’s
+          infrastructure according to our configuration and their platform practices.
+</p> <h2>7. Third parties we may use</h2> <p>
+When configured for an environment, we <strong>may use</strong> the following (this list is
+          not a guarantee that every vendor is live today):
+</p> <ul> <li><strong>Clerk</strong> — authentication and account session management</li> <li><strong>Anthropic</strong> — model inference to generate Zuly’s replies</li> <li><strong>Resend</strong> — transactional or waitlist-related email, if/when enabled</li> </ul> <p>
+Those providers process data only as needed to perform their services for us. Payment
+          processing (for example Stripe) is planned for a later monetization phase and is
+<strong>not</strong> enabled by this draft; when billing launches, this policy will be
+          updated after counsel review.
+</p> <h2>8. Crisis and safety</h2> <p>
+Zuly is not an emergency service. If you are in crisis or may harm yourself or someone
+          else, contact local emergency services, call or text <a href="tel:988">988</a> (US), or
+          visit
+<a href="https://findahelpline.com" target="_blank" rel="noopener noreferrer">findahelpline.com</a>. We may surface crisis resources in product when risk signals appear; that is not a
+          substitute for human help.
+</p> <h2>9. Retention and deletion</h2> <p>
+We keep waitlist, account, message, fact, and Wave data while those features are active
+          and as needed to operate the service, prevent abuse, and meet legal obligations. Soft-launch
+          controls for export and deletion will be refined; until then, contact us at the email below
+          to request account or data deletion where feasible.
+</p> <h2>10. Age</h2> <p>
+Hey Zuly is intended for adults <strong>18 years or older</strong>. We do not knowingly
+          collect personal information from children under 18. If you believe a minor has provided
+          data, contact us and we will take reasonable steps to delete it.
+</p> <h2>11. Your choices</h2> <ul> <li>Do not submit information you are uncomfortable storing with a wellness AI</li> <li>Request deletion or correction by emailing us (see Contact)</li> <li>Stop using the product and sign out when accounts are in use</li> </ul> <p>
+Specific “do not sell / share” or regional rights language (for example GDPR / CCPA) will
+          be completed with counsel before paid launch in applicable jurisdictions.
+</p> <h2>12. Security</h2> <p>
+We use platform security controls on Cloudflare (HTTPS, access controls, least-privilege
+          secrets handling). No method of transmission or storage is perfectly secure. Treat
+          sensitive clinical or legal details carefully and prefer human professionals for those
+          needs.
+</p> <h2>13. Changes</h2> <p>
+We may update this draft as the product, vendors, and legal review progress. Material
+          changes before paid launch will be reflected on this page with an updated date. Continued
+          use after changes means you should re-read the current draft.
+</p> <h2>14. Contact</h2> <p>
+Questions about privacy:
+<a href="mailto:support@heyzuly.com">support@heyzuly.com</a>
+·
+<a href="https://heyzuly.com">heyzuly.com</a> </p> </div> </div> </main> <footer class="foot"> <div class="wrap foot-in"> <a class="brand" href="/" aria-label="Hey Zuly — home"> <span class="hey">Hey</span><span class="zuly">Zuly</span> </a> <div class="foot-legal"> <span>Zuly is a wellness tool, not a medical device. It does not diagnose, treat, or prevent any condition.</span> <span>Zuly is an AI. Your conversations are not therapy and are not confidential in the same way.</span> <span>
+If you're in crisis, call or text <a href="tel:988">988</a> (US) or visit
+<a href="https://findahelpline.com" target="_blank" rel="noopener noreferrer">findahelpline.com</a>.
+</span> <nav class="foot-links" aria-label="Legal"> <a href="/privacy">Privacy</a> <span aria-hidden="true">·</span> <a href="/terms">Terms</a> <span aria-hidden="true">·</span> <a href="mailto:support@heyzuly.com">support@heyzuly.com</a> </nav> </div> <span>© 2026 · heyzuly.com</span> </div> </footer>  </body></html>

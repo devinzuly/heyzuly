@@ -8,6 +8,8 @@ Landing site and future app for [heyzuly.com](https://heyzuly.com) — a warm AI
 - **Source:** Astro 5 project in `src/` — editable components, entity-led copy
 - **Waitlist:** Phase 2 — `POST /api/waitlist` persists signups to Cloudflare D1
 - **Auth + preview app:** Phase 3 — Clerk sign-in at `/sign-in`, protected shell at `/app`
+- **Chat stub:** Phase 4 — `POST /api/chat` (JSON or SSE stream; canned or Anthropic); local bypass without Clerk keys
+- **Wave + ICS:** D1 `waves`/`day_plans` + `GET /api/wave/today.ics` calendar export
 
 ## Local development
 
@@ -47,6 +49,56 @@ Open the URL wrangler prints (usually [http://localhost:8788](http://localhost:8
 5. Build + Pages dev: `npm run pages:dev` — test `/sign-in`, `/sign-up`, `/app`.
 
 Clerk dashboard → **Paths**: set sign-in URL `/sign-in`, sign-up `/sign-up`, after sign-in `/app`. Add `http://localhost:8788` and `https://heyzuly.com` to allowed origins.
+
+### Chat API stub without Clerk (Phase 4 local)
+
+Continue chat work when Clerk keys are not available:
+
+1. In `.dev.vars`: `CHAT_DEV_BYPASS=true` (and leave `CLERK_SECRET_KEY` unset).
+2. In `.env`: `PUBLIC_CHAT_DEV_BYPASS=true` so `/app` renders the dev shell without a publishable key.
+3. Migrate chat + memory + waves tables once: `npm run db:migrate:local` (or `db:migrate:chat:local` + `db:migrate:memory:local` + `db:migrate:waves:local`).
+4. `npm run pages:dev` → open `/app`, complete onboarding (or ensure Wave), mark a tiny action, and send a chat message, or curl:
+
+```bash
+# Default: JSON reply (good for curl)
+curl -X POST http://localhost:8788/api/chat \
+  -H "Content-Type: application/json" \
+  -d "{\"messages\":[{\"role\":\"user\",\"content\":\"I feel scattered this morning.\"}]}"
+
+# SSE stream: body flag or Accept header
+curl -N -X POST http://localhost:8788/api/chat \
+  -H "Content-Type: application/json" \
+  -H "Accept: text/event-stream" \
+  -d "{\"messages\":[{\"role\":\"user\",\"content\":\"I feel scattered this morning.\"}],\"stream\":true}"
+
+curl http://localhost:8788/api/chat
+
+curl -X POST http://localhost:8788/api/memory \
+  -H "Content-Type: application/json" \
+  -d "{\"wave\":{\"pillar\":\"self-healing\",\"status\":\"starting\",\"week\":1}}"
+
+# First Wave + today’s plan stub (migration 0005)
+curl -X POST http://localhost:8788/api/wave \
+  -H "Content-Type: application/json" \
+  -d "{\"pillars\":[\"self-healing\"]}"
+
+curl http://localhost:8788/api/wave
+
+curl -X POST http://localhost:8788/api/wave/today \
+  -H "Content-Type: application/json" \
+  -d "{\"regenerate\":true}"
+
+curl -X POST http://localhost:8788/api/wave/today \
+  -H "Content-Type: application/json" \
+  -d "{\"item_id\":\"t1\",\"done\":true}"
+
+# ICS calendar export (today’s day_plan → VEVENTs; shame-free titles)
+curl -OJ http://localhost:8788/api/wave/today.ics
+```
+
+`GET /api/wave/today.ics` returns `text/calendar` for today’s tiny actions (times from `rhythm.hard_window`, durations from `heal.energy`) plus an optional soft Wave check-in when `rhythm.checkin` is scheduled. Same auth as chat (Clerk Bearer or `CHAT_DEV_BYPASS`). In `/app`, use **Add to calendar** on the Wave today panel.
+
+`POST /api/chat` persists the turn + injects Wave/`user_facts`/active day plan into the reply context; `GET` returns history + prefs. With `stream: true` or `Accept: text/event-stream`, the response is SSE (`meta` → `delta`* → `done`); otherwise JSON `{ ok, reply, mode, … }`. Safety (`functions/lib/safety.ts`) classifies input (`crisis` / `edge-safety` / `jailbreak` / `sexual` / `ok`) before generate and moderates output after — blocked turns use fixed templates (988, hotline, refuse). `mode` may be `crisis`, `edge-safety`, `jailbreak`, `sexual`, `stub`, or `anthropic`. Set `ANTHROPIC_API_KEY` in `.dev.vars` for real model replies. **Never enable `CHAT_DEV_BYPASS` in Cloudflare production.**
 
 With the heyzuly Chrome profile:
 
@@ -201,8 +253,11 @@ functions/
   api/waitlist/ # POST /api/waitlist, GET /api/waitlist/export
   api/users/    # POST /api/users/sync, /api/users/onboarding
   api/invite/   # POST /api/invite/grant (admin stub)
-  lib/          # validation, rate limit, auth, users
-migrations/     # D1 SQL schema (waitlist + users)
+  api/chat.ts   # POST /api/chat (Phase 4 stub)
+  api/wave.ts   # GET/POST /api/wave
+  api/wave/     # POST /api/wave/today, GET /api/wave/today.ics
+  lib/          # validation, rate limit, auth, users, chat, safety, waves, ics
+migrations/     # D1 SQL schema (waitlist + users + chat + facts + waves)
 src/pages/app/  # protected preview shell (/app)
 src/pages/sign-in.astro, sign-up.astro
 public/         # favicon.svg, robots.txt
@@ -224,5 +279,8 @@ wrangler.toml   # D1 binding + Pages output dir
 
 - Waitlist form POSTs to `/api/waitlist` with honeypot + rate limiting (5/min/IP)
 - Auth: Clerk at `/sign-in` and `/sign-up`; preview app at `/app` (Phase 3)
+- Chat: `POST`/`GET /api/chat` + D1 persistence + SSE + safety classifier/moderation (Phase 4); local `CHAT_DEV_BYPASS` / `PUBLIC_CHAT_DEV_BYPASS`
+- Wave + day plan: `GET`/`POST /api/wave`, `POST /api/wave/today`; ICS export `GET /api/wave/today.ics`
+- Evals: `npm run eval:offline` (101 library gates + safety smoke)
 - Brand is **entity-led** — no founder biography on site
 - No ad trackers on health-related flows
