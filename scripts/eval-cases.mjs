@@ -1,13 +1,15 @@
 #!/usr/bin/env node
 /**
- * Lightweight eval harness for docs/evals/cases.jsonl
+ * Lightweight eval harness for docs/evals/cases.jsonl (+ optional holdouts)
  *
  * Offline (default): deterministic gates against each case stored Good baseline
  * (library CI). Live model path is stubbed; skipped when ANTHROPIC_API_KEY is unset.
  *
  *   npm run eval:cases
  *   npm run eval:offline
+ *   npm run eval:holdouts
  *   node scripts/eval-cases.mjs --offline
+ *   node scripts/eval-cases.mjs --offline --holdouts-only
  */
 
 import { existsSync, readFileSync } from 'node:fs';
@@ -16,6 +18,7 @@ import { fileURLToPath } from 'node:url';
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
 const CASES_PATH = join(ROOT, 'docs', 'evals', 'cases.jsonl');
+const HOLDOUTS_PATH = join(ROOT, 'docs', 'evals', 'holdouts', 'cases-holdout.jsonl');
 
 function normalize(s) {
   return String(s ?? '')
@@ -198,38 +201,21 @@ function scoreOffline(c, text) {
   };
 }
 
-function loadCases() {
-  if (!existsSync(CASES_PATH)) {
-    throw new Error(`Missing cases file: ${CASES_PATH}`);
+function loadJsonl(path) {
+  if (!existsSync(path)) {
+    return null;
   }
-  const lines = readFileSync(CASES_PATH, 'utf8').trim().split(/\n/).filter(Boolean);
+  const lines = readFileSync(path, 'utf8').trim().split(/\n/).filter(Boolean);
   return lines.map((line, i) => {
     try {
       return JSON.parse(line);
     } catch (err) {
-      throw new Error(`JSONL parse error on line ${i + 1}: ${err.message}`);
+      throw new Error(`JSONL parse error ${path} line ${i + 1}: ${err.message}`);
     }
   });
 }
 
-/** Stub: live generation + judge. Skipped without key; not implemented yet with key. */
-async function runLiveStub(_cases) {
-  const key = process.env.ANTHROPIC_API_KEY?.trim();
-  if (!key) {
-    return { skipped: true, reason: 'ANTHROPIC_API_KEY not set' };
-  }
-  return {
-    skipped: true,
-    reason: 'ANTHROPIC_API_KEY present but live model/judge path is not implemented yet',
-  };
-}
-
-async function main() {
-  const args = new Set(process.argv.slice(2));
-  const offlineOnly =
-    args.has('--offline') || process.env.EVAL_OFFLINE === '1' || args.has('--library');
-
-  const cases = loadCases();
+function evaluateSet(label, cases) {
   let passed = 0;
   let failed = 0;
   let hardFailProbed = 0;
@@ -253,10 +239,12 @@ async function main() {
   ).length;
 
   console.log(
-    `Offline library gates (Good baseline): ${passed} pass / ${failed} fail / ${cases.length} total`,
+    `Offline ${label} gates (Good baseline): ${passed} pass / ${failed} fail / ${cases.length} total`,
   );
   console.log(
-    `Library composition: safety severity ${safety}/${cases.length} (${((100 * safety) / cases.length).toFixed(1)}%)`,
+    `${label} composition: safety severity ${safety}/${cases.length} (${
+      cases.length ? ((100 * safety) / cases.length).toFixed(1) : '0.0'
+    }%)`,
   );
   console.log(
     `hard_fail_if: ${hardFailProbed} label(s) probed lexically; ${hardFailSkipped} semantic-only skipped offline`,
@@ -273,14 +261,64 @@ async function main() {
     }
   }
 
+  return { passed, failed, total: cases.length };
+}
+
+/** Stub: live generation + judge. Skipped without key; not implemented yet with key. */
+async function runLiveStub(_cases) {
+  const key = process.env.ANTHROPIC_API_KEY?.trim();
+  if (!key) {
+    return { skipped: true, reason: 'ANTHROPIC_API_KEY not set' };
+  }
+  return {
+    skipped: true,
+    reason: 'ANTHROPIC_API_KEY present but live model/judge path is not implemented yet',
+  };
+}
+
+async function main() {
+  const args = new Set(process.argv.slice(2));
+  const offlineOnly =
+    args.has('--offline') || process.env.EVAL_OFFLINE === '1' || args.has('--library');
+  const holdoutsOnly = args.has('--holdouts-only') || args.has('--holdouts');
+  const skipHoldouts = args.has('--no-holdouts');
+
+  let totalFailed = 0;
+  let allForLive = [];
+
+  if (!holdoutsOnly) {
+    const goldens = loadJsonl(CASES_PATH);
+    if (!goldens) {
+      throw new Error(`Missing cases file: ${CASES_PATH}`);
+    }
+    const g = evaluateSet('library', goldens);
+    totalFailed += g.failed;
+    allForLive = goldens;
+  }
+
+  if (!skipHoldouts) {
+    const holdouts = loadJsonl(HOLDOUTS_PATH);
+    if (holdoutsOnly && !holdouts) {
+      throw new Error(`Missing holdouts file: ${HOLDOUTS_PATH}`);
+    }
+    if (holdouts) {
+      if (!holdoutsOnly) console.log('');
+      const h = evaluateSet('holdout', holdouts);
+      totalFailed += h.failed;
+      allForLive = holdoutsOnly ? holdouts : allForLive.concat(holdouts);
+    } else if (!holdoutsOnly) {
+      console.log('Holdouts: skipped (no docs/evals/holdouts/cases-holdout.jsonl)');
+    }
+  }
+
   if (offlineOnly) {
     console.log('Live model: skipped (--offline)');
   } else {
-    const live = await runLiveStub(cases);
+    const live = await runLiveStub(allForLive);
     console.log(`Live model: skipped (${live.reason})`);
   }
 
-  process.exit(failed ? 1 : 0);
+  process.exit(totalFailed ? 1 : 0);
 }
 
 main().catch((err) => {

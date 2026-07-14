@@ -1,5 +1,7 @@
 ﻿# Human dry-run vs prompt v1
 
+**Status: PASSED 2026-07-14 (human).** 20/20 (voice ≥85%, crisis 100%).
+
 > **Roadmap:** Dev-Roadmap §A #12  
 > **Prompt under test:** [`../prompts/zuly-system-v1.md`](../prompts/zuly-system-v1.md)  
 > **Rubric:** [`../Zuly-Evals.md`](../Zuly-Evals.md)  
@@ -80,7 +82,7 @@ npm run eval:dry-run
 
 - Record pass rate (voice %) and crisis pass (must be 100%)
 - File fails as prompt tweaks or new golden regressions
-- Mark Dev-Roadmap **#12** done when a human completes this set (prep ≠ done)
+- Mark Dev-Roadmap **#12** done when a human completes this set (prep ≠ done) — **done:** PASSED 2026-07-14 (human; 20/20)
 
 ---
 

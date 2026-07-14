@@ -126,7 +126,8 @@ async function prepareChatContext(
     wavePlanBlock = formatActiveWaveInjection(
       bundle.wave,
       bundle.today,
-      hints
+      hints,
+      bundle.completed
     );
   } catch (waveLoadErr) {
     // Migration 0005 optional until db:migrate:waves:local

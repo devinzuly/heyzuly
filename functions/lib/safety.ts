@@ -91,10 +91,15 @@ const FIGURATIVE_FALSE_POSITIVES: RegExp[] = [
   /\b(die|dying|died) of (embarrassment|cringe|laugh(?:ter)?|boredom|hunger|curiosity|shame)\b/i,
   /\bwant to die of\b/i,
   /\bkilling me (softly|with|that)\b/i,
+  /\b(this|that|it|'s|is) killing me\b/i,
   /\b(dying|dead) (inside )?(from|of) (secondhand|work|meetings?|emails?)\b/i,
   /\bdrop dead gorgeous\b/i,
   /\bto die for\b/i,
   /\bgaming\b.{0,40}\b(killed me|i died)\b/i,
+  // Ambition / performance slang — must not trip on "kill" alone.
+  /\bkill(?:ing)? it (at|in|on|with|tonight|today|this|tomorrow)\b/i,
+  /\bkilled it (at|in|on|with|tonight|today|this)\b/i,
+  /\b(go|went|gonna|going to) kill it\b/i,
 ];
 
 function isFigurativeDeathTalk(text: string): boolean {
@@ -110,13 +115,23 @@ const CRISIS_SUICIDALITY: Array<{ re: RegExp; reason: string }> = [
   { re: /\bkill myself\b/i, reason: 'kill_myself' },
   { re: /\bkms\b/i, reason: 'kms' },
   { re: /\bend my life\b/i, reason: 'end_my_life' },
+  { re: /\btak(?:e|ing) my own life\b/i, reason: 'take_own_life' },
+  { re: /\bend(?:ing)? it all\b/i, reason: 'end_it_all' },
   { re: /\bsuicid(?:e|al|ial)\b/i, reason: 'suicide' },
+  { re: /\bunalive (myself|me)\b/i, reason: 'unalive' },
+  { re: /\bself[- ]?delet(?:e|ing|ion)\b/i, reason: 'self_delete' },
   { re: /\bwant to die\b/i, reason: 'want_to_die' },
+  { re: /\bwish i (was|were) dead\b/i, reason: 'wish_dead' },
   { re: /\bdon'?t want to be (here|alive)\b/i, reason: 'dont_want_to_be' },
   { re: /\bdont want to be (here|alive)\b/i, reason: 'dont_want_to_be' },
+  { re: /\bdon'?t want to live\b/i, reason: 'dont_want_to_live' },
+  { re: /\bdont want to live\b/i, reason: 'dont_want_to_live' },
   { re: /\bbetter off (if i (were|was) )?dead\b/i, reason: 'better_off_dead' },
   { re: /\bbetter off if i were dead\b/i, reason: 'better_off_dead' },
   { re: /\bno reason to live\b/i, reason: 'no_reason_to_live' },
+  { re: /\blife (isn'?t|is not) worth living\b/i, reason: 'not_worth_living' },
+  { re: /\bnot worth living\b/i, reason: 'not_worth_living' },
+  { re: /\bno point (in )?living\b/i, reason: 'no_point_living' },
   { re: /\bhope i don'?t wake up\b/i, reason: 'hope_dont_wake' },
   { re: /\b(kind of |kinda )?hope .{0,20}don'?t wake up\b/i, reason: 'hope_dont_wake' },
   { re: /\bways to end it\b/i, reason: 'ways_to_end_it' },
@@ -125,6 +140,12 @@ const CRISIS_SUICIDALITY: Array<{ re: RegExp; reason: string }> = [
   { re: /\bcan'?t go on\b/i, reason: 'cant_go_on' },
   { re: /\bcant go on\b/i, reason: 'cant_go_on' },
   { re: /\bgiving up on everything\b/i, reason: 'giving_up_everything' },
+  { re: /\bhang(?:ing)? myself\b/i, reason: 'hang_myself' },
+  { re: /\bshoot(?:ing)? myself\b/i, reason: 'shoot_myself' },
+  {
+    re: /\bjump off (a |the )?(bridge|building|roof|balcony)\b/i,
+    reason: 'jump_off',
+  },
   {
     re: /\b(disappear(?:ed|ing)?|vanish(?:ed|ing)?)\b.{0,60}\b(no one|anyone|nobody) (would )?notice\b/i,
     reason: 'disappear_unnoticed',
@@ -141,6 +162,8 @@ const CRISIS_SELF_HARM: Array<{ re: RegExp; reason: string }> = [
   { re: /\bhurt myself\b/i, reason: 'hurt_myself' },
   { re: /\babout to cut\b/i, reason: 'about_to_cut' },
   { re: /\b(blade|razor|knife) out\b/i, reason: 'blade_out' },
+  { re: /\b(slash|burn) myself\b/i, reason: 'slash_burn_myself' },
+  { re: /\bi'?m going to cut\b/i, reason: 'going_to_cut' },
 ];
 
 const CRISIS_HOMICIDE: Array<{ re: RegExp; reason: string }> = [
@@ -330,10 +353,14 @@ const OUTPUT_MEDS: RegExp[] = [
 const OUTPUT_METHODS: RegExp[] = [
   /\bhow (would|do|can|should) (you|i|they) (do it|kill|harm|cut|overdose)\b/i,
   /\b(what|which) (method|pills?|dosage|dose) (are you|would you)\b/i,
+  /\bwhat methods are you considering\b/i,
   /\b(lethal dose|how to (cut|hang|overdose)|mix .{0,20}pills?)\b/i,
   /\bstep-by-step suicide\b/i,
   /\bwhere are you planning to cut\b/i,
   /\bhow deep\b.{0,30}\b(cut|blade)\b/i,
+  /\bsafer (ways|alternatives|options) to (hurt|harm|cut|end|kill)\b/i,
+  /\b(hanging|firearm|jump(?:ing)? from|carbon monoxide).{0,50}\b(method|works|effective|try)\b/i,
+  /\btell me (exactly )?how you('d| would) (do it|end it)\b/i,
 ];
 
 const OUTPUT_ROMANTIC: RegExp[] = [
@@ -357,6 +384,15 @@ const OUTPUT_HIPAA_THERAPY: RegExp[] = [
   /\bi (am|'m) (a |your )?(licensed )?(therapist|doctor|clinician)\b/i,
   /\bhipaa[- ]?(protected|compliant|privilege)\b/i,
   /\bthis (chat|conversation) is confidential like therapy\b/i,
+];
+
+/** Crisis-coach theater that must never ship after a crisis-classified turn. */
+const OUTPUT_CRISIS_COACHING: RegExp[] = [
+  /\b(let'?s (explore|reframe|build|start)|gratitude wave|journaling wave|21-day)\b/i,
+  /\b(explore|unpack|process) why you (want to die|don'?t want to (be here|live|wake)|feel this way)\b/i,
+  /\blist three things worth living for\b/i,
+  /\bprove your worth\b/i,
+  /\breinvention plan\b/i,
 ];
 
 /**
@@ -604,11 +640,7 @@ export function moderateOutput(
     const n = text.toLowerCase();
     if (!/\b988\b/.test(n)) reasons.push('missing_988');
     if (!n.includes('findahelpline')) reasons.push('missing_findahelpline');
-    if (
-      /\b(let'?s (explore|reframe|build|start)|gratitude wave| journaling wave|21-day)\b/i.test(
-        text
-      )
-    ) {
+    if (anyMatch(text, OUTPUT_CRISIS_COACHING)) {
       reasons.push('coaching_through_crisis');
     }
   }
