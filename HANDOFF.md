@@ -194,23 +194,29 @@ Canonical ordered sequence: [`docs/Dev-Roadmap.md`](docs/Dev-Roadmap.md) § **Or
 | Phase 3 Clerk | Coded; **vendor-blocked** on keys + prod smoke |
 | Phase 4 chat | Stub + D1 messages + history UI; `CHAT_DEV_BYPASS` works |
 | Phase 4 memory | D1 `user_facts` + Wave/pillar inject **shipped** |
-| Phase 4 onboarding | Micro-flow + optional Self-healing survey (G1/G2/S1–S3) **shipped** |
+| Phase 4 onboarding | Micro-flow + optional survey banks for **selected** pillars (Self-healing / Meditation / Body / Life) **shipped** |
 | Phase 4 SSE | Streaming chat **shipped** (`stream: true` / `Accept: text/event-stream`) |
-| Offline evals | `npm run eval:offline` — 101 goldens |
+| Phase 5 Grow stub | Grow tab week 1–4 + today completion + **Wave complete celebration** **shipped** |
+| Phase 5a curricula | 4-week templates all pillars + week advance + complete/next Wave **shipped** |
+| Phase 5b Talk→build | `POST /api/wave/build-from-talk` + ChatPanel confirm/edit **shipped** |
+| Phase 5d nudge stubs | `nudge_log` + cron dry-run + channel length helpers **shipped** (no vendor send) |
+| Offline evals | `npm run eval:offline` — 113 goldens + 24 holdouts + safety smoke; `eval:holdouts` alone |
+| Human dry-run (#12) | **Passed** 2026-07-14 — 20/20 (voice ≥85%, crisis 100%); see `docs/evals/dry-run.md` |
 
 ### Deferred / vendor holds
 
 | Item | Status |
 |---|---|
-| Exemplar paraphrases / holdouts (~20%) | Deferred |
+| Exemplar paraphrases / holdouts (~20%) | **Done** — 24 in `docs/evals/holdouts/` |
 | Eval harness — **live** model / judge | Deferred (needs Anthropic) |
-| Skipped golden themes | Deferred |
+| Skipped golden themes | **Done** (`ex-102`–`ex-105`) |
 | Cultural depth suite | Deferred |
 | **Love Languages module** | **Deferred / Backlog** — optional Life deep-dive, conversational, multi-preference, never day-1, never framed as science; elaborate later (see `docs/Onboarding-Survey-Spec.md` §4) |
+| **#11 Lighthouse + copy sign-off** | **Deferred / skipped for now** — a11y/nav polish shipped; human mobile Lighthouse ≥90 + stakeholder copy before soft launch (walkthrough: `docs/evals/lighthouse-copy-signoff.md`) |
 | Resend / ConvertKit email | Vendor-blocked |
 | Clerk keys + Phase 3 prod smoke | Vendor-blocked |
 | Supabase/pgvector + mem0 | Vendor-blocked (after D1 facts) |
 | Stripe / Twilio / WhatsApp Meta | Vendor-blocked |
 
-**Unlocked next (no new vendor):** Landing polish (#11) / human dry-run (#12). Privacy/ToS drafts shipped (`/privacy`, `/terms`) — **counsel review before paid launch**. ICS export shipped (`GET /api/wave/today.ics`).
+**Unlocked next (no new vendor):** hold vendor email/SMS; counsel review of Privacy/ToS before Stripe. Phase 5a curricula + completion celebration + 5b Talk→build **shipped**. Nudge **logic** stubs + WA/SMS helpers shipped — real email/SMS = Resend/Twilio hold. **#12 passed**. **#11 deferred** until soft-launch prep.
 

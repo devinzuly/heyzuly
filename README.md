@@ -9,7 +9,7 @@ Landing site and future app for [heyzuly.com](https://heyzuly.com) — a warm AI
 - **Waitlist:** Phase 2 — `POST /api/waitlist` persists signups to Cloudflare D1
 - **Auth + preview app:** Phase 3 — Clerk sign-in at `/sign-in`, protected shell at `/app`
 - **Chat stub:** Phase 4 — `POST /api/chat` (JSON or SSE stream; canned or Anthropic); local bypass without Clerk keys
-- **Wave + ICS:** D1 `waves`/`day_plans` + `GET /api/wave/today.ics` calendar export
+- **Wave + ICS:** D1 `waves`/`day_plans` + Talk→build (`POST /api/wave/build-from-talk`) + `GET /api/wave/today.ics` calendar export
 
 ## Local development
 
@@ -56,7 +56,7 @@ Continue chat work when Clerk keys are not available:
 
 1. In `.dev.vars`: `CHAT_DEV_BYPASS=true` (and leave `CLERK_SECRET_KEY` unset).
 2. In `.env`: `PUBLIC_CHAT_DEV_BYPASS=true` so `/app` renders the dev shell without a publishable key.
-3. Migrate chat + memory + waves tables once: `npm run db:migrate:local` (or `db:migrate:chat:local` + `db:migrate:memory:local` + `db:migrate:waves:local`).
+3. Migrate chat + memory + waves + nudge_log once: `npm run db:migrate:local` (or add `db:migrate:nudges:local` after waves).
 4. `npm run pages:dev` → open `/app`, complete onboarding (or ensure Wave), mark a tiny action, and send a chat message, or curl:
 
 ```bash
@@ -92,11 +92,40 @@ curl -X POST http://localhost:8788/api/wave/today \
   -H "Content-Type: application/json" \
   -d "{\"item_id\":\"t1\",\"done\":true}"
 
+# Talk → build day (Phase 5b) — propose from chat (stub keywords; Anthropic optional)
+curl -X POST http://localhost:8788/api/wave/build-from-talk \
+  -H "Content-Type: application/json" \
+  -d "{\"messages\":[{\"role\":\"user\",\"content\":\"I feel scattered and want one tiny step for today.\"}],\"pillar\":\"self-healing\"}"
+
+# Confirm/edit → replace today’s day_plan
+curl -X POST http://localhost:8788/api/wave/today \
+  -H "Content-Type: application/json" \
+  -d "{\"items\":[{\"id\":\"t1\",\"text\":\"Three slow breaths before email.\",\"pillar\":\"self-healing\",\"done\":false}]}"
+
 # ICS calendar export (today’s day_plan → VEVENTs; shame-free titles)
 curl -OJ http://localhost:8788/api/wave/today.ics
+
+# Check-in nudge stubs (no Resend/Twilio/Meta) — migration 0006
+# With CHAT_DEV_BYPASS and no CRON_SECRET/INVITE_ADMIN_SECRET, POST is open locally.
+# Prefer: CRON_SECRET=… or INVITE_ADMIN_SECRET=… in .dev.vars
+curl -X POST http://localhost:8788/api/cron/nudges \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer YOUR_CRON_OR_INVITE_SECRET" \
+  -d "{\"user_id\":\"dev-bypass\"}"
+
+# Alias:
+curl -X POST http://localhost:8788/api/nudges/run \
+  -H "Content-Type: application/json" \
+  -d "{}"
+
+curl http://localhost:8788/api/nudges
 ```
 
+`POST /api/wave/build-from-talk` proposes 1–3 tiny actions from recent chat (or `summary`) using keyword stub templates + survey facts (`heal.energy` caps). Optional Anthropic JSON extract when `ANTHROPIC_API_KEY` is set. Confirm/edit persists via `POST /api/wave/today` with `{ items: [...] }` (or `{ confirm: true, items }` on build-from-talk). In `/app`, use **Build today from this chat** under Talk.
+
 `GET /api/wave/today.ics` returns `text/calendar` for today’s tiny actions (times from `rhythm.hard_window`, durations from `heal.energy`) plus an optional soft Wave check-in when `rhythm.checkin` is scheduled. Same auth as chat (Clerk Bearer or `CHAT_DEV_BYPASS`). In `/app`, use **Add to calendar** on the Wave today panel.
+
+`POST /api/cron/nudges` (alias `POST /api/nudges/run`) evaluates who is due from `rhythm.checkin` + soft `rhythm.hard_window`, skips crisis / day-done / `when_open`, and writes `nudge_log` rows with `sent_stub` (would-send). It does **not** call Resend, Twilio, or Meta. `GET /api/nudges` returns the next-check-in estimate + recent log for the current user.
 
 `POST /api/chat` persists the turn + injects Wave/`user_facts`/active day plan into the reply context; `GET` returns history + prefs. With `stream: true` or `Accept: text/event-stream`, the response is SSE (`meta` → `delta`* → `done`); otherwise JSON `{ ok, reply, mode, … }`. Safety (`functions/lib/safety.ts`) classifies input (`crisis` / `edge-safety` / `jailbreak` / `sexual` / `ok`) before generate and moderates output after — blocked turns use fixed templates (988, hotline, refuse). `mode` may be `crisis`, `edge-safety`, `jailbreak`, `sexual`, `stub`, or `anthropic`. Set `ANTHROPIC_API_KEY` in `.dev.vars` for real model replies. **Never enable `CHAT_DEV_BYPASS` in Cloudflare production.**
 
@@ -255,7 +284,7 @@ functions/
   api/invite/   # POST /api/invite/grant (admin stub)
   api/chat.ts   # POST /api/chat (Phase 4 stub)
   api/wave.ts   # GET/POST /api/wave
-  api/wave/     # POST /api/wave/today, GET /api/wave/today.ics
+  api/wave/     # POST /api/wave/today, POST /api/wave/build-from-talk, GET /api/wave/today.ics
   lib/          # validation, rate limit, auth, users, chat, safety, waves, ics
 migrations/     # D1 SQL schema (waitlist + users + chat + facts + waves)
 src/pages/app/  # protected preview shell (/app)
@@ -280,7 +309,7 @@ wrangler.toml   # D1 binding + Pages output dir
 - Waitlist form POSTs to `/api/waitlist` with honeypot + rate limiting (5/min/IP)
 - Auth: Clerk at `/sign-in` and `/sign-up`; preview app at `/app` (Phase 3)
 - Chat: `POST`/`GET /api/chat` + D1 persistence + SSE + safety classifier/moderation (Phase 4); local `CHAT_DEV_BYPASS` / `PUBLIC_CHAT_DEV_BYPASS`
-- Wave + day plan: `GET`/`POST /api/wave`, `POST /api/wave/today`; ICS export `GET /api/wave/today.ics`
-- Evals: `npm run eval:offline` (105 library gates + safety smoke); human dry-run set: `npm run eval:dry-run` (see `docs/evals/dry-run.md`)
+- Wave + day plan: `GET`/`POST /api/wave`, `POST /api/wave/today`, `POST /api/wave/build-from-talk`; ICS export `GET /api/wave/today.ics`
+- Evals: `npm run eval:offline` (113 goldens + 24 holdouts + safety smoke); holdouts only: `npm run eval:holdouts`; human dry-run: `npm run eval:dry-run` (see `docs/evals/dry-run.md`)
 - Brand is **entity-led** — no founder biography on site
 - No ad trackers on health-related flows

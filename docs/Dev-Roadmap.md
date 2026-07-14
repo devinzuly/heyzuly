@@ -18,7 +18,7 @@ Canonical sprint board. Update status here as work lands. **Do not implement ven
 | **Phase 2** — Waitlist backend | **done** | Production waitlist API verified 2026-07-13 |
 | **Phase 3** — Auth + preview app shell | **blocked (vendor)** | Clerk coded; keys + prod smoke pending user |
 | **Phase 4** — Zuly core (chat, memory) | **in progress** | Chat + facts + SSE + safety + onboarding + soft-launch survey + Wave/`day_plans` + ICS; Privacy/ToS **drafts shipped** (#10) — counsel review before paid launch |
-| **Phase 5** — Waves, pillars & calendar loop | **next** (after 4 core) | Product loop; ICS shipped stub; email nudges still vendor-blocked; full 4-week template UI still backlog |
+| **Phase 5** — Waves, pillars & calendar loop | **next** (after 4 core) | Product loop; ICS + 4-week curricula shipped; email nudges still vendor-blocked |
 | **Phase 6** — Channels (WhatsApp, SMS) | **backlog** | After safety + memory; Meta/Twilio vendor |
 | **Phase 7** — Monetization, compliance & launch | **backlog** | Privacy/ToS drafts shipped (#10); counsel review → Stripe last |
 
@@ -29,7 +29,7 @@ Ordered by leverage for the talk → learn → Wave path. Agent should pick the 
 | # | Step | Status | Depends on | Vendor? |
 |---|---|---|---|---|
 | 1 | Chat API stub + D1 `conversations`/`messages` + history UI | **done** | Phase 3 shell / `CHAT_DEV_BYPASS` | N |
-| 2 | Offline eval harness + prompt v1 + ~101 goldens | **done** | Persona spec | N |
+| 2 | Offline eval harness + prompt v1 + 113 goldens + 24 holdouts | **done** | Persona spec | N |
 | 3 | **Wave / pillar preference injection** — honor `wave` on `POST /api/chat`; thin UI chips; persist on `user_facts` | **done** | #1 | N |
 | 4 | **D1 `user_facts` memory stub** — table + inject last facts into stub/Anthropic system context | **done** | #1 | N |
 | 5 | SSE streaming for `/api/chat` + ChatPanel token-by-token | **done** | #1; Anthropic optional if key already in `.dev.vars` | N (Anthropic **blocked** if key missing) |
@@ -38,11 +38,11 @@ Ordered by leverage for the talk → learn → Wave path. Agent should pick the 
 | 8 | Wave data model stub (D1 `waves` / `day_plans`) + “build today” JSON shape | **done** (survey-fact branching for canned plans) | #3–4; soft-launch survey | N |
 | 9 | ICS calendar export for day plan | **done** | #8 | N |
 | 10 | Privacy Policy + ToS drafts (wellness-not-therapy, AI disclosure) | **done** (draft) | Parallel anytime | N — **counsel review before Stripe / paid launch** |
-| 11 | Landing polish (Lighthouse ≥90, stakeholder copy sign-off) | **in progress** (a11y/nav polish shipped; human Lighthouse + copy sign-off pending) | Phase 1.5 draft | N |
-| 12 | Human dry-run: 20 prompts vs prompt v1 (≥85% voice, 100% crisis) | **prep done** — awaiting human rating (`docs/evals/dry-run.md`, `npm run eval:dry-run`) | #2 | N |
-| 13 | Expand crisis keyword + hard-fail eval cases | backlog | #2 | N |
+| 11 | Landing polish (Lighthouse ≥90, stakeholder copy sign-off) | **deferred / skipped for now** (a11y/nav polish shipped; human Lighthouse + copy sign-off before soft launch) | Phase 1.5 draft | N |
+| 12 | Human dry-run: 20 prompts vs prompt v1 (≥85% voice, 100% crisis) | **done / passed** — human dry-run 2026-07-14 — 20/20 pass (voice ≥85%, crisis 100%) | #2 | N |
+| 13 | Expand crisis keyword + hard-fail eval cases | **done** | #2 | N |
 
-**Shipped 2026-07-14:** #3–#9 (Wave injection + `user_facts` + SSE + safety + onboarding + `waves`/`day_plans` + `GET /api/wave/today.ics`) + optional soft-launch Self-healing survey + #10 Privacy/ToS **drafts** at `/privacy` + `/terms` (marked Draft; counsel review before paid launch). **#11 landing polish (2026-07-14 code pass):** WCAG-oriented token contrast (`--faint` / light `--gold` / light `--spark`), skip link, mobile Menu disclosure (Pillars / How / Privacy / Terms), waitlist label + focus, trimmed meta description, footer Privacy/Terms verified. **Still needs human:** mobile Lighthouse ≥90 score note + stakeholder copy sign-off (hero + Meet Zuly / Phase 1.5). **Love Languages** stays backlog (never day-1). **Next can-do:** human dry-run scoring to close #12 (`npm run eval:dry-run` + `/app`); human Lighthouse/copy sign-off to close #11; #13 crisis keyword expansion; holdouts fill under `docs/evals/holdouts/`.
+**Shipped 2026-07-14:** #3–#9 + soft-launch survey banks for **all selected pillars** (Self-healing / Meditation / Body / Life) + day-plan branching on `heal.*` / `med.*` / `body.*` / `life.*` + Grow week progress + **Phase 5a 4-week Wave curricula** (`functions/lib/wave-templates.ts`; week advance from `started_at`; Grow theme/focus; chat week-theme inject) + **Wave completion celebration** (auto on week≥4 + `ends_at`; `POST /api/wave/complete`; Grow celebration + soft next Wave; chat inject) + #10 Privacy/ToS drafts + #11 a11y code pass (**#11 human Lighthouse/copy deferred**) + #12 dry-run pass + #13 crisis keywords + 24 holdouts + check-in nudge **logic** stubs (`nudge_log` + `/api/cron/nudges`, no Resend/Twilio) + WhatsApp/SMS length helpers (`functions/lib/channels.ts`, no Meta) + **Phase 5b Talk → build-day** (`POST /api/wave/build-from-talk` + confirm/edit in ChatPanel; persist via `/api/wave/today` `{ items }`). **Next can-do:** hold vendor email/SMS sends; counsel review of Privacy/ToS before Stripe; optional Loop copy / pillar prompt generation.
 
 ### B. Blocked on vendor — hold (list only)
 
@@ -52,7 +52,7 @@ Ordered by leverage for the talk → learn → Wave path. Agent should pick the 
 | Anthropic live replies (if key unset) | **blocked (vendor)** | **Anthropic** | Stub path works; use key only if already in `.dev.vars` |
 | Live model / judge eval harness | **blocked (vendor)** | **Anthropic** | Offline gates already ship |
 | Resend waitlist confirmation email | **blocked (vendor)** | **Resend** / ConvertKit | Explicitly deferred |
-| Email check-in nudges | **blocked (vendor)** | **Resend** | After Wave day-plan exists |
+| Email check-in nudges | **blocked (vendor)** | **Resend** | Logic stubs shipped (`nudge_log`); real send still Resend |
 | Long-term vector memory (pgvector + mem0) | **blocked (vendor)** | **Supabase** | D1 `user_facts` first |
 | WhatsApp Business API | **blocked (vendor)** | **Meta** / Twilio | Start Meta verification early; soft launch can be app-only |
 | SMS channel | **blocked (vendor)** | **Twilio** | After WhatsApp path or parallel |
@@ -63,10 +63,10 @@ Ordered by leverage for the talk → learn → Wave path. Agent should pick the 
 
 | Order | Phase / deliverable | Status | Depends on | Vendor? |
 |---|---|---|---|---|
-| 1 | Phase 5a — Wave template (4-week Self-healing) + progress UI | partial — canned day branching from survey facts shipped; full week template UI backlog | Phase 4 memory + prefs + survey | N |
-| 2 | Phase 5b — Talk → build day (structured JSON) + confirm/edit | backlog | 5a | N |
-| 3 | Phase 5c — ICS calendar export | **done** (stub via today’s day_plan; full LLM build-day path still backlog) | 5b partial / #8 | N |
-| 4 | Phase 5d — Check-in nudges | backlog | 5b | Y — Resend (or Web Push later) |
+| 1 | Phase 5a — Wave template (4-week Self-healing) + progress UI | **done** — curricula for all 4 pillars (`wave-templates.ts`); Grow theme/focus; week advance by `started_at`; chat inject; **completion celebration** (auto/`POST /api/wave/complete` + Grow soft next Wave) | Phase 4 memory + prefs + survey | N |
+| 2 | Phase 5b — Talk → build day (structured JSON) + confirm/edit | **done** (stub keywords + survey caps; optional Anthropic JSON extract) | 5a | N |
+| 3 | Phase 5c — ICS calendar export | **done** (stub via today’s day_plan; Talk→build writes same `day_plans`) | 5b / #8 | N |
+| 4 | Phase 5d — Check-in nudges | partial — **logic stubs shipped** (`nudge_log`, cron dry-run); real send backlog | 5b / wave day-plan | Y — **Resend** (email) / Twilio later; Web Push optional |
 | 5 | Phase 7a prep — Privacy/ToS finalized (drafts shipped in §A #10; counsel review before paid launch) | backlog | #10 drafts | N / **counsel required before Stripe** |
 | 6 | Phase 6a — WhatsApp webhook → same chat/memory pipeline | backlog | Phase 4 safety + memory | Y — Meta/Twilio |
 | 7 | Phase 6b — SMS opt-in + STOP | backlog | 6a or parallel | Y — Twilio |
@@ -88,8 +88,8 @@ Ordered by leverage for the talk → learn → Wave path. Agent should pick the 
 - [x] Build outputs to `dist/`; `npm run build` configured
 - [x] README updated with dev commands
 - [x] Draft Zuly persona doc (`docs/Zuly-Persona-Spec.md`)
-- [ ] Lighthouse performance ≥ 90 on landing (mobile) — **human run pending** (2026-07-14 code pass: contrast tokens, skip link, mobile nav menu, meta trim; re-audit after deploy)
-- [ ] Stakeholder sign-off on hero + Meet Zuly copy (Phase 1.5 draft ready for review)
+- [ ] Lighthouse performance ≥ 90 on landing (mobile) — **deferred / skipped for now** (human gate before soft launch; code a11y pass 2026-07-14; see `docs/evals/lighthouse-copy-signoff.md`)
+- [ ] Stakeholder sign-off on hero + Meet Zuly copy (Phase 1.5 draft ready) — **deferred / skipped for now** (same #11 human gate)
 - [x] Verify deploy matches prior URL structure after first build push
 
 ### Phase 1.5 checklist (Option A ? broad lead, cultural depth in product)
@@ -102,7 +102,7 @@ Ordered by leverage for the talk → learn → Wave path. Agent should pick the 
 - [x] Meta/OG: broad appeal description (women 28?42, growth season)
 - [x] `docs/Zuly-Persona-Spec.md`: marketing vs in-product voice; language mirroring rules
 - [x] `npm run build` succeeds
-- [ ] Stakeholder sign-off on Phase 1.5 copy — **human pending** (marketing src grep clean of mija/onda/Lupe; no new sections in #11 pass)
+- [ ] Stakeholder sign-off on Phase 1.5 copy — **deferred / skipped for now** (#11 human gate before soft launch)
 
 ### Phase 2 checklist (waitlist backend)
 
@@ -143,7 +143,7 @@ Ordered by leverage for the talk → learn → Wave path. Agent should pick the 
 | Item | Target phase | Status | Scope (brief) |
 |---|---|---|---|
 | **Ethnicity / cultural language enhancement** | Post–Phase 4 (eval + privacy review) | **Backlog / deferred** | User-selectable or carefully inferred cultural/language preference; adaptive persona with deeper Spanish and culturally warm *feeling* in **chat only** — not marketing. **Deferred cultural depth suite:** Spanish-preference, bilingual-switch, Spanish crisis. Keep en-default + light `es-mirror` / few `earned-mija` only. See `docs/Zuly-Evals.md` + `docs/evals/`. |
-| **Exemplar paraphrases / holdouts (~20%)** | Phase 4 prep | **stub folder** (`docs/evals/holdouts/`) — cases still backlog | Hold out paraphrase variants so prompt v1 is not overfit to literal `good` text in `cases.jsonl`. |
+| **Exemplar paraphrases / holdouts (~20%)** | Phase 4 prep | **done** — **24** holdouts (`ho-001`–`ho-024`, ~21% of 113); crisis paraphrases of `ex-106`–`ex-111` + older crisis; wired via `npm run eval:offline` / `eval:holdouts` | Hold out paraphrase variants so prompt v1 is not overfit to literal `good` text in `cases.jsonl`. |
 | **Eval harness — live model / judge** | Phase 4 prep | **Backlog / deferred** | Offline library gates done (`npm run eval:offline`). Live Anthropic generation + judge still deferred (needs `ANTHROPIC_API_KEY` + scoring path). |
 | **Skipped golden themes** | Phase 4 prep | **done** (`ex-102`–`ex-105`) | in-laws spiral; sibling triangulation; mild-illness lazy-day guilt; false-promise memory claim. |
 | **Resend waitlist confirmation email** | Phase 2 optional / later | **Backlog / deferred** | Do **not** implement now. Optional Resend/ConvertKit sync on signup remains deferred. |
@@ -154,15 +154,14 @@ Ordered by leverage for the talk → learn → Wave path. Agent should pick the 
 
 Explicitly **not** in progress now (no Resend, no Clerk/Stripe/Twilio/Supabase signup by the agent):
 
-1. Exemplar paraphrases / holdouts (~20%)
-2. Live model eval judge (offline library validation is done)
-3. Skipped themes: in-laws spiral; sibling triangulation; mild-illness lazy-day guilt; false-promise memory claim
-4. Cultural depth suite (Spanish preference, bilingual switch, Spanish crisis)
-5. Resend waitlist confirmation email
-6. Clerk keys + Phase 3 production smoke (vendor-blocked)
-7. Supabase/pgvector + mem0 (after D1 `user_facts` proves the inject path)
-8. Stripe / Twilio / WhatsApp vendor setup
-9. **Love Languages module** (optional Life deep-dive — conversational, multi-preference, never day-1, never framed as science; elaborate later)
+1. Live model eval judge (offline library + holdout validation is done)
+2. Cultural depth suite (Spanish preference, bilingual switch, Spanish crisis)
+3. Resend waitlist confirmation email
+4. Clerk keys + Phase 3 production smoke (vendor-blocked)
+5. Supabase/pgvector + mem0 (after D1 `user_facts` proves the inject path)
+6. Stripe / Twilio / WhatsApp vendor setup
+7. **Love Languages module** (optional Life deep-dive — conversational, multi-preference, never day-1, never framed as science; elaborate later)
+8. **#11 Lighthouse + copy sign-off** — deferred / skipped for now (human gate before soft launch)
 
 See **§ Ordered sequence** for the living can-do-now queue.
 
@@ -397,12 +396,12 @@ Can proceed without Clerk keys or live chat API.
 - [x] Crisis / safety section: keyword triggers + required 988 / findahelpline behaviors — `docs/Zuly-Evals.md`
 - [x] System prompt draft v1 (Anthropic-ready stub) — `docs/prompts/zuly-system-v1.md`
 - [x] Golden composition **targets** locked: ~100 cases; **~25%** severity `crisis` \| `edge-safety`; cultural depth **deferred**
-- [x] Priority A/B fills to ~100 golden — **101** cases; safety **26/101 (~26%)**; culture deferred — see `docs/evals/README.md`
+- [x] Priority A/B fills to ~100 golden — **113** cases (`ex-001`–`ex-113`); safety share held near ~25% + #13 crisis keyword fills; culture deferred — see `docs/evals/README.md`
 - [x] Offline eval harness — library gates on `good` baseline (`scripts/eval-cases.mjs`; `npm run eval:offline`) — must_include / must_not / crisis 988+findahelpline / lexical hard_fail_if
 - [ ] Live model / judge harness — **deferred / backlog** (stubbed; needs `ANTHROPIC_API_KEY`)
-- [ ] Human dry-run: 20 test prompts against prompt v1; target ≥85% voice pass, **100%** crisis pass — **prep shipped** (`docs/evals/dry-run.md` + `npm run eval:dry-run`); human scoring still open
-- [ ] Paraphrases / holdouts (~20%) - **stub folder** `docs/evals/holdouts/` (fill `cases-holdout.jsonl` later); so prompt is not overfit to literal Good text
-- [ ] Skipped themes (deferred): in-laws spiral; sibling triangulation; mild-illness lazy-day guilt; false-promise memory claim
+- [x] Human dry-run: 20 test prompts against prompt v1; target ≥85% voice pass, **100%** crisis pass — **done / passed** 2026-07-14 (human; 20/20; `docs/evals/dry-run.md`)
+- [x] Paraphrases / holdouts (~20%) — **24** in `docs/evals/holdouts/cases-holdout.jsonl` (`ho-001`–`ho-024`); `npm run eval:offline` / `eval:holdouts` gate Good baselines; crisis paraphrases of `ex-106`–`ex-111` included
+- [x] Skipped themes — filled in goldens (`ex-102`–`ex-105`): in-laws; sibling triangulation; mild-illness lazy-day guilt; false-promise memory claim
 
 
 #### Deliverables
@@ -428,20 +427,20 @@ Can proceed without Clerk keys or live chat API.
   3. Rhythm: when do you want check-ins?
   4. Seed `user_facts` + First Wave prefs; first chat acknowledges focus without Spanish cosplay
 - [x] **Wave data model stub:** D1 `waves` + `day_plans` (`migrations/0005_create_waves.sql`); `GET`/`POST /api/wave`, `POST /api/wave/today` canned build-today JSON; AppShell today panel; chat injects active Wave + today’s plan
-- [x] **Soft-launch survey (Self-healing):** optional G1/G2/S1–S3 → `season.label`, `rhythm.hard_window`, `heal.*` facts (**Love Languages** not in day-1 — backlog)
-- [x] **Day plan fact branching:** canned templates honor heal.mode / energy / theme, hard_window timing, season framing (no Anthropic)
+- [x] **Soft-launch survey banks:** optional G1/G2 + selected pillar musts (Self-healing S1–S3, Meditation M1–M2, Body B1–B2, Life L1–L3) → season / rhythm / heal.* / med.* / body.* / life.* facts (**Love Languages** not in day-1 — backlog)
+- [x] **Day plan fact branching:** canned templates honor heal / med / body / life survey facts, hard_window timing, season framing (no Anthropic)
 - [x] **ICS calendar export:** `GET /api/wave/today.ics` (`text/calendar`); VEVENTs from today’s items + soft check-in; WaveTodayPanel “Add to calendar”
 - [x] Chat UI stub: AppShell `ChatPanel` posts to `/api/chat`; typing indicator; local `PUBLIC_CHAT_DEV_BYPASS` shell without Clerk
 - [x] Chat UI: persisted message history (load on mount via `GET /api/chat`)
 - [x] Chat UI: streaming replies (ChatPanel consumes SSE deltas)
-- [ ] Persona eval suite: 20 test prompts; target >85% pass (human review rubric)
+- [x] Persona eval suite: 20 test prompts; target >85% pass (human review rubric) — **passed** 2026-07-14 (#12; 20/20)
 - [ ] Privacy: conversations encrypted at rest (Supabase); no ad trackers
 
 #### Exit criteria (measurable)
 
 - [ ] 5 beta testers complete onboarding; Zuly references onboarding facts in session 2
-- [ ] Crisis test prompts trigger 988 response 100% of time (no exceptions in eval)
-- [ ] Persona eval pass rate ? 85% on voice rubric (warmth, directness, no therapy claims)
+- [x] Crisis test prompts trigger 988 response 100% of time (no exceptions in eval) — **passed** 2026-07-14 (#12 human dry-run)
+- [x] Persona eval pass rate ? 85% on voice rubric (warmth, directness, no therapy claims) — **passed** 2026-07-14 (#12; 20/20)
 - [ ] P95 chat response start < 3s (streaming first token)
 - [ ] Memory retrieval adds < 500ms to session start
 
@@ -476,16 +475,17 @@ Can proceed without Clerk keys or live chat API.
 
 #### Deliverables
 
-- [x] **Wave data model stub:** `waves (id, user_id, pillars, status, week, started_at, ends_at)` + `day_plans (id, wave_id, date, items_json, status)` — migration 0005; full Phase 5a template UI still backlog
-- [x] **Day plan “build today” stub:** canned pillar templates → 1–3 tiny actions JSON; mark done; shame-free miss copy; branches on soft-launch survey facts
-- [ ] **Talk ? build day:** After conversation, Zuly proposes today's plan (structured JSON); user confirms/edits — LLM path later
-- [ ] **One Wave template:** 4-week **Self-healing** Wave (CBT + expressive writing focus) ? beachhead pillar (day-1 fact branching shipped; week progression UI backlog)
-- [ ] Wave progress UI: week/day indicator, completion checkboxes (light today panel shipped in #8)
+- [x] **Wave data model stub:** `waves (id, user_id, pillars, status, week, started_at, ends_at)` + `day_plans (id, wave_id, date, items_json, status)` — migration 0005
+- [x] **Day plan “build today” stub:** canned pillar templates → 1–3 tiny actions JSON; mark done; shame-free miss copy; branches on soft-launch survey facts + **week curriculum seeds**
+- [x] **Talk → build day:** After conversation, propose today’s plan (structured JSON); user confirms/edits — `POST /api/wave/build-from-talk` stub (+ optional Anthropic JSON); confirm via `POST /api/wave/today` `{ items }`
+- [x] **One Wave template:** 4-week **Self-healing** Wave (CBT-lite + expressive writing) beachhead + Meditation / Body / Life curricula in `functions/lib/wave-templates.ts`; week advances from `started_at`
+- [x] Wave progress UI: Grow tab week 1–4 + **week theme/focus** + today completion from `GET /api/wave`
 - [x] **Calendar export:** ICS file generation (`GET /api/wave/today.ics`); Google/Apple import via download (subscribe URL later)
-- [ ] **Daily check-in nudge:** app notification or email at user-preferred time (v1: email via Resend if no PWA push yet)
+- [x] **Daily check-in nudge logic stub:** cron dry-run + `nudge_log` (`sent_stub`); skips crisis / day-done / `when_open` (no Resend/Twilio)
+- [ ] **Daily check-in nudge send:** email via Resend (or PWA push) at preferred soft window — **vendor hold**
 - [ ] Pillar content generation: Zuly generates practice prompts, not pre-recorded audio library
 - [ ] Loop copy in app matches landing: Talk ? Learn ? Build ? Calendar ? Check in
-- [ ] Wave completion celebration message (Zuly voice; no guilt mechanics)
+- [x] Wave completion celebration message (Zuly voice; no guilt mechanics) — Grow + `POST /api/wave/complete` + chat inject (ex-070 tone)
 
 #### Exit criteria (measurable)
 
@@ -863,7 +863,7 @@ Week:  1    2    3    4    5    6    7    8    9   10   11   12 ...
 
 | Workstream | Parallel with | Owner | Notes |
 |---|---|---|---|
-| **Persona exemplars + eval rubric** | Phases 1–4 | Dev + copy review | **Prep #1:** taxonomy/rubric + prompt v1 + **~100 golden achieved** (105 in `docs/evals/`); safety ~25%; cultural depth deferred; offline library harness done; holdouts fill + live judge still backlog; dry-run prep shipped; blocks Phase 4 exit |
+| **Persona exemplars + eval rubric** | Phases 1–4 | Dev + copy review | **Prep #1:** taxonomy/rubric + prompt v1 + **113** goldens + **24** holdouts; safety ~28%; cultural depth deferred; offline library + holdout gates done; live judge still backlog; **#12 human dry-run passed** 2026-07-14 (20/20); remaining Phase 4 exit items open |
 | **Privacy policy / ToS draft** | Phases 2?6 | Dev + legal template | Don't wait until Phase 7 |
 | **Meta WhatsApp Business verification** | Phases 4?5 | Dev | 1?4 week external delay |
 | **Stripe account + product setup** | Phase 5 | Dev | Test mode during Phase 5 |
@@ -886,11 +886,15 @@ Week:  1    2    3    4    5    6    7    8    9   10   11   12 ...
 
 Canonical queue: **§ Ordered sequence → A. Can do now**. Top of stack as of 2026-07-14:
 
-1. **Close #12** — human scores the dry-run set (`npm run eval:dry-run` → `/app` or prompt-paste); ≥85% voice, 100% crisis
-2. **Close #11** — human mobile Lighthouse ≥90 note + stakeholder copy sign-off (code a11y/nav pass shipped)
-3. Expand crisis keyword + hard-fail eval cases (#13) when touching safety
-4. Hold all vendor signups (Clerk, Resend, Anthropic if unset, Stripe, Twilio, Supabase, ConvertKit) — **counsel review of Privacy/ToS before Stripe**
-5. Fill holdout paraphrases under `docs/evals/holdouts/` (~20%) when dry-run capacity allows
+1. ~~Check-in nudge **logic** stubs + WA/SMS length helpers~~ — **shipped** (no Resend/Twilio/Meta send; real channel = vendor hold)
+2. ~~Phase 5b — Talk → build day (structured JSON) + confirm/edit~~ — **shipped** (`/api/wave/build-from-talk` + ChatPanel confirm; Anthropic JSON optional)
+3. ~~Phase 5a — full 4-week Wave template content~~ — **shipped** (`wave-templates.ts` all pillars; Grow theme/focus; week advance; chat inject)
+4. ~~Wave completion celebration (Zuly voice; no guilt)~~ — **shipped** (auto on week≥4 + `ends_at`; `POST /api/wave/complete`; Grow celebration + soft next Wave; chat inject; ex-070 tone)
+5. ~~Soft-launch survey banks (Meditation / Body / Life) + Grow week stub~~ — **shipped**
+6. ~~#11 Lighthouse + copy sign-off~~ — **deferred / skipped for now** (human gate before soft launch; walkthrough in `docs/evals/lighthouse-copy-signoff.md`)
+7. Hold all vendor signups (Clerk, Resend, Anthropic if unset, Stripe, Twilio, Supabase, ConvertKit) — **counsel review of Privacy/ToS before Stripe**; wire Resend/Twilio only after nudge stub is proven
+8. ~~Close #12 — human dry-run~~ — **done / passed** 2026-07-14 (20/20; voice ≥85%, crisis 100%)
+9. ~~Fill holdout paraphrases~~ — **done** (24; `npm run eval:offline` / `eval:holdouts`)
 
 ---
 
