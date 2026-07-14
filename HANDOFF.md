@@ -180,3 +180,21 @@ npx wrangler pages deploy dist
 ---
 
 *This handoff will be updated as Cloudflare access and source recovery progress.*
+
+---
+
+## Active deferred backlog (2026-07-14)
+
+Canonical phase checklist: `docs/Dev-Roadmap.md`. These items are **explicitly deferred** (do not start unless unlocked):
+
+| Item | Status |
+|---|---|
+| Exemplar paraphrases / holdouts (~20%) | Deferred |
+| Eval harness — **live** model / judge | Deferred (offline library gates shipped: `npm run eval:offline`) |
+| Skipped themes: in-laws spiral; sibling triangulation; mild-illness lazy-day guilt; false-promise memory claim | Deferred |
+| Cultural depth suite (Spanish preference, bilingual switch, Spanish crisis) | Deferred |
+| Resend waitlist confirmation email | Deferred — do not implement now |
+| Clerk keys + Phase 3 prod smoke | User-blocked / deferred |
+
+**Unlocked next (no Resend/Clerk):** continue Phase 4 prep — human dry-run against prompt v1, chat API stub, or memory schema design.
+

@@ -70,8 +70,8 @@
 - [x] Invite stub: `POST /api/invite/grant` + optional `INVITE_REQUIRED`
 - [x] Onboarding AI disclosure modal + crisis link in app chrome
 - [x] Env vars documented (`.env.example`, `.dev.vars.example`, `docs/CLOUDFLARE-SETUP.md`)
-- [ ] Clerk app created + keys set in Cloudflare Pages (user action)
-- [ ] Production smoke test: sign up ? `/app` ? sign out ? sign in
+- [ ] Clerk app created + keys set in Cloudflare Pages (user action) — **user-blocked / deferred**
+- [ ] Production smoke test: sign up → `/app` → sign out → sign in — **user-blocked / deferred**
 - [ ] Preview env configured (branch previews or `preview.heyzuly.com`)
 
 ### Product positioning (Phase 1.5 ? locked)
@@ -84,7 +84,24 @@
 
 | Item | Target phase | Status | Scope (brief) |
 |---|---|---|---|
-| **Ethnicity / cultural language enhancement** | Post–Phase 4 (eval + privacy review) | **Backlog** | User-selectable or carefully inferred cultural/language preference; adaptive persona that mirrors the user's background with deeper Spanish and culturally warm *feeling* in **chat only** — not marketing. Includes Spanish-preference / bilingual-switch / Spanish crisis depth suites, opt-in/consent for inference, and eval rubrics to avoid stereotyping. **Deferred:** not in Phase 4 golden library (~100); keep en-default + light mirror-only only. See `docs/Zuly-Evals.md` taxonomy + `docs/evals/`. |
+| **Ethnicity / cultural language enhancement** | Post–Phase 4 (eval + privacy review) | **Backlog / deferred** | User-selectable or carefully inferred cultural/language preference; adaptive persona with deeper Spanish and culturally warm *feeling* in **chat only** — not marketing. **Deferred cultural depth suite:** Spanish-preference, bilingual-switch, Spanish crisis. Keep en-default + light `es-mirror` / few `earned-mija` only. See `docs/Zuly-Evals.md` + `docs/evals/`. |
+| **Exemplar paraphrases / holdouts (~20%)** | Phase 4 prep | **Backlog / deferred** | Hold out paraphrase variants so prompt v1 is not overfit to literal `good` text in `cases.jsonl`. |
+| **Eval harness — live model / judge** | Phase 4 prep | **Backlog / deferred** | Offline library gates done (`npm run eval:offline`). Live Anthropic generation + judge still deferred (needs `ANTHROPIC_API_KEY` + scoring path). |
+| **Skipped golden themes** | Phase 4 prep | **Backlog / deferred** | in-laws spiral; sibling triangulation; mild-illness lazy-day guilt; false-promise memory claim. |
+| **Resend waitlist confirmation email** | Phase 2 optional / later | **Backlog / deferred** | Do **not** implement now. Optional Resend/ConvertKit sync on signup remains deferred. |
+| **Clerk keys + Phase 3 prod smoke** | Phase 3 exit | **User-blocked / deferred** | Clerk app + keys in Pages; prod smoke: sign up → `/app` → sign out → sign in. Code in repo; blocked on user credentials. |
+
+### Active deferred backlog (current sprint)
+
+Explicitly **not** in progress now (no Resend, no Clerk key work by the agent):
+
+1. Exemplar paraphrases / holdouts (~20%)
+2. Live model eval judge (offline library validation is done)
+3. Skipped themes: in-laws spiral; sibling triangulation; mild-illness lazy-day guilt; false-promise memory claim
+4. Cultural depth suite (Spanish preference, bilingual switch, Spanish crisis)
+5. Resend waitlist confirmation email
+6. Clerk keys + Phase 3 production smoke (user-blocked)
+
 
 ---
 
@@ -221,7 +238,7 @@ Assumes no major regulatory blockers, no App Store review delays (web-first), an
 - [x] Honeypot + basic bot resistance (no CAPTCHA v1 unless abuse appears)
 - [x] Wire Astro waitlist form to Worker endpoint
 - [x] Admin export: Wrangler D1 query or simple password-protected `GET /api/waitlist/export`
-- [ ] Optional: **Resend** or **ConvertKit** sync on signup (webhook from Worker)
+- [ ] Optional: **Resend** or **ConvertKit** sync on signup (webhook from Worker) — **deferred / backlog** (do not implement in current sprint)
 - [x] Error states in UI: duplicate email, network failure
 - [x] Environment secrets documented (not committed): `WRANGLER_*`, API keys
 
@@ -318,9 +335,11 @@ Can proceed without Clerk keys or live chat API.
 - [x] System prompt draft v1 (Anthropic-ready stub) — `docs/prompts/zuly-system-v1.md`
 - [x] Golden composition **targets** locked: ~100 cases; **~25%** severity `crisis` \| `edge-safety`; cultural depth **deferred**
 - [x] Priority A/B fills to ~100 golden — **101** cases; safety **26/101 (~26%)**; culture deferred — see `docs/evals/README.md`
-- [ ] Scripted eval harness runner (`run.ts` / `score.ts`) — JSONL ready; runner not built yet
+- [x] Offline eval harness — library gates on `good` baseline (`scripts/eval-cases.mjs`; `npm run eval:offline`) — must_include / must_not / crisis 988+findahelpline / lexical hard_fail_if
+- [ ] Live model / judge harness — **deferred / backlog** (stubbed; needs `ANTHROPIC_API_KEY`)
 - [ ] Human dry-run: 20 test prompts against prompt v1; target ≥85% voice pass, **100%** crisis pass
-- [ ] Paraphrases / holdouts (~20%) so prompt is not overfit to literal Good text
+- [ ] Paraphrases / holdouts (~20%) — **deferred / backlog** so prompt is not overfit to literal Good text
+- [ ] Skipped themes (deferred): in-laws spiral; sibling triangulation; mild-illness lazy-day guilt; false-promise memory claim
 
 
 #### Deliverables
@@ -773,7 +792,7 @@ Week:  1    2    3    4    5    6    7    8    9   10   11   12 ...
 
 | Workstream | Parallel with | Owner | Notes |
 |---|---|---|---|
-| **Persona exemplars + eval rubric** | Phases 1–4 | Dev + copy review | **Prep #1:** taxonomy/rubric + prompt v1 + **~100 golden achieved** (101 in `docs/evals/`); safety ~26%; cultural depth deferred; paraphrases/holdouts + harness runner still open; blocks Phase 4 exit |
+| **Persona exemplars + eval rubric** | Phases 1–4 | Dev + copy review | **Prep #1:** taxonomy/rubric + prompt v1 + **~100 golden achieved** (101 in `docs/evals/`); safety ~26%; cultural depth deferred; offline library harness done; paraphrases/holdouts + live judge still backlog; blocks Phase 4 exit |
 | **Privacy policy / ToS draft** | Phases 2?6 | Dev + legal template | Don't wait until Phase 7 |
 | **Meta WhatsApp Business verification** | Phases 4?5 | Dev | 1?4 week external delay |
 | **Stripe account + product setup** | Phase 5 | Dev | Test mode during Phase 5 |
