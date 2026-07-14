@@ -3,6 +3,7 @@
  * Body options:
  *   { regenerate?: boolean } — rebuild items from pillar templates
  *   { item_id: string, done: boolean } — mark a tiny action done / undone (shame-free)
+ *   { items: DayPlanItem[] } — replace today’s plan (Talk → build confirm/edit)
  */
 
 import { resolveChatSession } from '../../lib/auth';
@@ -11,6 +12,8 @@ import {
   ensureTodayPlan,
   getActiveWave,
   markDayPlanItem,
+  normalizeDayPlanItems,
+  replaceTodayItems,
   serializeDayPlan,
   serializeWave,
 } from '../../lib/waves';
@@ -46,6 +49,7 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
 
   const obj = raw as Record<string, unknown>;
   const regenerate = obj.regenerate === true;
+  const hasItems = Array.isArray(obj.items);
   const hasMark =
     typeof obj.item_id === 'string' &&
     obj.item_id.trim() &&
@@ -55,10 +59,10 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
     let wave = await getActiveWave(env.DB, session.userId);
     if (!wave) {
       const ensured = await ensureFirstWave(env.DB, session.userId, {
-        generateToday: true,
+        generateToday: !hasItems,
       });
       wave = ensured.wave;
-      if (!hasMark && !regenerate) {
+      if (!hasMark && !regenerate && !hasItems) {
         return jsonResponse({
           ok: true,
           user_id: session.userId,
@@ -67,6 +71,33 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
           created_wave: ensured.created,
         });
       }
+    }
+
+    if (hasItems) {
+      const items = normalizeDayPlanItems(obj.items, wave.primary_pillar, 3);
+      if (!items.length) {
+        return jsonResponse(
+          {
+            ok: false,
+            error: 'items_empty',
+            hint: 'Send 1–3 tiny actions with text + pillar.',
+          },
+          400
+        );
+      }
+      const today = await replaceTodayItems(
+        env.DB,
+        session.userId,
+        wave,
+        items
+      );
+      return jsonResponse({
+        ok: true,
+        user_id: session.userId,
+        wave: serializeWave(wave),
+        today: serializeDayPlan(today),
+        replaced: true,
+      });
     }
 
     if (hasMark) {
@@ -117,6 +148,16 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
           ok: false,
           error: 'wave_prefs_missing',
           hint: 'Complete onboarding or POST /api/wave with pillars.',
+        },
+        400
+      );
+    }
+    if (message === 'items_empty') {
+      return jsonResponse(
+        {
+          ok: false,
+          error: 'items_empty',
+          hint: 'Add at least one tiny action before saving.',
         },
         400
       );

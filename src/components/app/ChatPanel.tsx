@@ -19,6 +19,22 @@ interface ChatPanelProps {
   /** Optional Clerk token for authenticated chat; omit under CHAT_DEV_BYPASS */
   getToken?: () => Promise<string | null>;
   subtitle?: string;
+  /** Bump Wave today panel after Talk → build confirm. */
+  onDayPlanConfirmed?: () => void;
+}
+
+interface ProposedItem {
+  id: string;
+  text: string;
+  pillar: PillarId;
+  done: boolean;
+}
+
+/** Soft offer when the user already sounds ready for a tiny day plan. */
+function looksPlanReady(text: string): boolean {
+  return /\b(for today|today'?s plan|build (a |my )?day|plan (my|the)? ?day|tiny (step|action)s?|what should i do|make a plan|map (this|it)|one small step|that'?s enough for today)\b/i.test(
+    text
+  );
 }
 
 const PILLAR_OPTIONS: Array<{ id: PillarId; label: string }> = [
@@ -132,7 +148,16 @@ async function* iterChatSse(
   }
 }
 
-export function ChatPanel({ getToken, subtitle }: ChatPanelProps) {
+function isPillarUi(value: unknown): value is PillarId {
+  return (
+    value === 'meditation' ||
+    value === 'self-healing' ||
+    value === 'body' ||
+    value === 'life-guidance'
+  );
+}
+
+export function ChatPanel({ getToken, subtitle, onDayPlanConfirmed }: ChatPanelProps) {
   const [messages, setMessages] = useState<ChatUiMessage[]>(STARTER);
   const [draft, setDraft] = useState('');
   const [sending, setSending] = useState(false);
@@ -141,6 +166,12 @@ export function ChatPanel({ getToken, subtitle }: ChatPanelProps) {
   const [pillar, setPillar] = useState<PillarId | null>(null);
   const [waveActive, setWaveActive] = useState(false);
   const [savingPrefs, setSavingPrefs] = useState(false);
+  const [proposed, setProposed] = useState<ProposedItem[] | null>(null);
+  const [proposeSource, setProposeSource] = useState('');
+  const [proposeCap, setProposeCap] = useState(3);
+  const [offerBuild, setOfferBuild] = useState(false);
+  const [building, setBuilding] = useState(false);
+  const [buildHint, setBuildHint] = useState('');
   const threadRef = useRef<HTMLDivElement>(null);
 
   const applyPrefs = useCallback(
@@ -276,9 +307,104 @@ export function ChatPanel({ getToken, subtitle }: ChatPanelProps) {
     [applyPrefs, getToken, waveActive]
   );
 
+  const buildFromTalk = useCallback(async () => {
+    if (building) return;
+    setBuilding(true);
+    setError('');
+    setBuildHint('');
+    try {
+      const token = getToken ? await getToken() : null;
+      const payload = {
+        pillar: pillar ?? undefined,
+        messages: messages
+          .filter((m) => m.role === 'user' || m.role === 'assistant')
+          .slice(-12)
+          .map((m) => ({ role: m.role, content: m.content })),
+      };
+      const res = await fetch('/api/wave/build-from-talk', {
+        method: 'POST',
+        headers: authHeaders(token),
+        body: JSON.stringify(payload),
+      });
+      const data = await res.json();
+      if (!res.ok || !data.ok) {
+        setError(
+          data.hint
+            ? String(data.hint)
+            : data.error === 'nothing_to_build'
+              ? 'Say a little first — then we can shape today’s tiny steps.'
+              : 'Could not build a day plan from this chat.'
+        );
+        return;
+      }
+      const items = Array.isArray(data.proposed?.items)
+        ? (data.proposed.items as ProposedItem[])
+        : [];
+      setProposed(
+        items.map((item, i) => ({
+          id: item.id || `t${i + 1}`,
+          text: String(item.text || '').slice(0, 200),
+          pillar: (isPillarUi(item.pillar) ? item.pillar : pillar) ?? 'self-healing',
+          done: false,
+        }))
+      );
+      setProposeSource(String(data.proposed?.source ?? 'stub'));
+      setProposeCap(Number(data.proposed?.cap) || items.length || 3);
+      setOfferBuild(false);
+      setBuildHint(
+        'Draft only — edit, remove, or confirm. Nothing is saved until you confirm.'
+      );
+    } catch {
+      setError('Network error building today’s plan.');
+    } finally {
+      setBuilding(false);
+    }
+  }, [building, getToken, messages, pillar]);
+
+  const confirmProposed = useCallback(async () => {
+    if (building || !proposed?.length) return;
+    setBuilding(true);
+    setError('');
+    try {
+      const token = getToken ? await getToken() : null;
+      const res = await fetch('/api/wave/today', {
+        method: 'POST',
+        headers: authHeaders(token),
+        body: JSON.stringify({
+          items: proposed.map((item) => ({
+            id: item.id,
+            text: item.text.trim().slice(0, 200),
+            pillar: item.pillar,
+            done: false,
+          })),
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok || !data.ok) {
+        setError(
+          data.hint
+            ? String(data.hint)
+            : 'Could not save today’s plan.'
+        );
+        return;
+      }
+      setProposed(null);
+      setOfferBuild(false);
+      setBuildHint('Saved — your Wave today panel has these tiny actions.');
+      onDayPlanConfirmed?.();
+    } catch {
+      setError('Network error saving today’s plan.');
+    } finally {
+      setBuilding(false);
+    }
+  }, [building, getToken, onDayPlanConfirmed, proposed]);
+
   const send = useCallback(async () => {
     const content = draft.trim();
     if (!content || sending) return;
+    if (looksPlanReady(content)) {
+      setOfferBuild(true);
+    }
 
     const userMsg: ChatUiMessage = {
       id: `u-${Date.now()}`,
@@ -561,6 +687,117 @@ export function ChatPanel({ getToken, subtitle }: ChatPanelProps) {
       </div>
 
       {error ? <p className="chat-stub-error">{error}</p> : null}
+
+      <div className="chat-build-day" aria-label="Build today from chat">
+        {offerBuild && !proposed ? (
+          <p className="chat-build-offer">
+            Sounds like you’re ready for a tiny day — want to shape it from this chat?
+          </p>
+        ) : null}
+        <div className="chat-build-actions">
+          <button
+            type="button"
+            className="chat-build-btn"
+            disabled={
+              building ||
+              loadingHistory ||
+              messages.filter((m) => m.role === 'user').length === 0
+            }
+            onClick={() => void buildFromTalk()}
+          >
+            {building && !proposed ? 'Shaping…' : 'Build today from this chat'}
+          </button>
+          {proposed ? (
+            <button
+              type="button"
+              className="chat-build-dismiss"
+              disabled={building}
+              onClick={() => {
+                setProposed(null);
+                setBuildHint('Okay — keep talking. We can shape a day whenever you’re ready.');
+              }}
+            >
+              Not now
+            </button>
+          ) : null}
+        </div>
+
+        {proposed ? (
+          <div className="chat-build-propose">
+            <p className="chat-build-propose-label">
+              Proposed tiny actions
+              {proposeSource ? ` · ${proposeSource}` : ''}
+              {proposeCap ? ` · up to ${proposeCap}` : ''}
+            </p>
+            <ul className="chat-build-items">
+              {proposed.map((item, idx) => (
+                <li key={item.id} className="chat-build-item">
+                  <label className="sr-only" htmlFor={`build-item-${item.id}`}>
+                    Tiny action {idx + 1}
+                  </label>
+                  <input
+                    id={`build-item-${item.id}`}
+                    type="text"
+                    className="chat-build-item-input"
+                    value={item.text}
+                    maxLength={200}
+                    disabled={building}
+                    onChange={(e) => {
+                      const text = e.target.value;
+                      setProposed((prev) =>
+                        prev
+                          ? prev.map((p) =>
+                              p.id === item.id ? { ...p, text } : p
+                            )
+                          : prev
+                      );
+                    }}
+                  />
+                  <button
+                    type="button"
+                    className="chat-build-remove"
+                    disabled={building || proposed.length <= 1}
+                    aria-label={`Remove: ${item.text}`}
+                    onClick={() => {
+                      setProposed((prev) =>
+                        prev && prev.length > 1
+                          ? prev.filter((p) => p.id !== item.id)
+                          : prev
+                      );
+                    }}
+                  >
+                    Remove
+                  </button>
+                </li>
+              ))}
+            </ul>
+            <div className="chat-build-confirm-row">
+              <button
+                type="button"
+                className="chat-build-confirm"
+                disabled={
+                  building ||
+                  !proposed.some((p) => p.text.trim()) ||
+                  proposed.length === 0
+                }
+                onClick={() => void confirmProposed()}
+              >
+                {building ? 'Saving…' : 'Confirm for today'}
+              </button>
+              <button
+                type="button"
+                className="chat-build-dismiss"
+                disabled={building}
+                onClick={() => void buildFromTalk()}
+              >
+                Refresh draft
+              </button>
+            </div>
+          </div>
+        ) : null}
+
+        {buildHint ? <p className="chat-build-hint">{buildHint}</p> : null}
+      </div>
 
       <form
         className="chat-stub-input is-live"

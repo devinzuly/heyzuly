@@ -11,8 +11,8 @@
 |---|---|---|
 | **AI disclosure** (`OnboardingDisclosure` in `AppShell`) | Shipped | Legal/trust floor — AI wellness guide, not therapist; 988 |
 | **#7 Onboarding micro-flow** (name → pillar → rhythm → seed fact) | Shipped | **Day-1 activation** — enough to talk + seed `user_facts` |
-| **Soft-launch Self-healing survey** (G1, G2, S1, S2, S3) | Shipped (optional, skippable) | Day-1 pack when Self-healing is selected; seeds survey facts |
-| **Full pillar survey banks** (Meditation / Body / Life modules) | Spec only — Phase 4.5+ | Progressive profiling; do not block Talk |
+| **Soft-launch survey banks** (G1/G2 + Self-healing / Meditation / Body / Life musts) | Shipped (optional, skippable) | Day-1 pack for **selected** pillars; seeds survey facts |
+| **Full progressive banks** (should / later modules) | Spec — Phase 5b+ | Progressive profiling; do not block Talk |
 | **Wave / `day_plans`** | Stub + canned branching on survey facts | Consumes survey facts as plan constraints |
 
 ### Deferred / Backlog (discoverable)
@@ -247,9 +247,9 @@ Scales reused:
 | Phase | Survey work |
 |---|---|
 | **4 / #7** | Micro-flow only |
-| **4.5** | Day-1 optional survey shell + global + Self-healing must bank (soft-launch default) — **shipped** (G1/G2/S1–S3 when Self-healing selected) |
-| **5a** | Wire facts → Wave template / first `day_plans` JSON — **partial** (canned build-today branching shipped; 4-week UI backlog) |
-| **5b+** | Progressive banks; Life L3; still **no** Love Languages assessment |
+| **4.5** | Day-1 optional survey shell + global + **all selected pillar must banks** — **shipped** (G1/G2 + Self-healing S1–S3 / Meditation M1–M2 / Body B1–B2 / Life L1–L3) |
+| **5a** | Wire facts → Wave template / first `day_plans` JSON — **partial** (canned build-today branching for heal/med/body/life shipped; 4-week UI stub on Grow) |
+| **5b+** | Progressive should/later banks; still **no** Love Languages assessment |
 
 ---
 

@@ -1,13 +1,16 @@
 /**
- * GET /api/wave — current active Wave + today’s day plan.
+ * GET /api/wave — current active Wave + today’s day plan
+ *   (+ completed celebration when no active Wave).
  * POST /api/wave — start/ensure First Wave from onboarding prefs (creates day plan stub).
  */
 
 import { resolveChatSession } from '../lib/auth';
 import { isPillarId, type PillarId } from '../lib/memory';
 import {
+  canExplicitlyCompleteWave,
   ensureFirstWave,
   loadWaveContextBundle,
+  serializeCelebration,
   serializeDayPlan,
   serializeWave,
 } from '../lib/waves';
@@ -30,12 +33,19 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
   }
 
   try {
-    const { wave, today } = await loadWaveContextBundle(env.DB, session.userId);
+    const { wave, today, completed } = await loadWaveContextBundle(
+      env.DB,
+      session.userId
+    );
     return jsonResponse({
       ok: true,
       user_id: session.userId,
       wave: wave ? serializeWave(wave) : null,
       today: today ? serializeDayPlan(today) : null,
+      completed_wave: completed ? serializeWave(completed) : null,
+      celebration:
+        completed && !wave ? serializeCelebration(completed) : null,
+      can_complete: wave ? canExplicitlyCompleteWave(wave) : false,
     });
   } catch (err) {
     console.error('wave get failed', err);

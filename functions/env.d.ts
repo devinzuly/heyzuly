@@ -4,6 +4,8 @@ interface Env {
   WAITLIST_IP_SALT?: string;
   CLERK_SECRET_KEY?: string;
   INVITE_ADMIN_SECRET?: string;
+  /** Bearer for cron/admin stubs (e.g. POST /api/cron/nudges); falls back to INVITE_ADMIN_SECRET */
+  CRON_SECRET?: string;
   /** When "true" or "1", only invited emails can sync / use the app */
   INVITE_REQUIRED?: string;
   /**

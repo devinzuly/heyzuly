@@ -1,6 +1,6 @@
 /**
  * Phase 4 onboarding micro-flow — name → pillars → rhythm → seed facts.
- * Optional soft-launch Self-healing survey (G1, G2, S1–S3) when Self-healing selected.
+ * Optional soft-launch survey banks (G1/G2 + selected pillar musts) — skippable.
  */
 
 import {
@@ -81,19 +81,88 @@ export const HEAL_ENERGIES = [
   'Only when I need it',
 ] as const;
 
+/** M1 — med.length_min */
+export const MED_LENGTHS = [
+  '2 min',
+  '5',
+  '10',
+  '15+',
+  'Not sure yet',
+] as const;
+
+/** M2 — med.experience */
+export const MED_EXPERIENCES = [
+  'Brand new',
+  'Tried apps, fell off',
+  'Decent habit',
+  'Love it but inconsistent',
+] as const;
+
+/** B1 — body.modality */
+export const BODY_MODALITIES = [
+  'Walk',
+  'Stretch / mobility',
+  'Strength lite',
+  'Dance / fun',
+  'Yoga-ish',
+  'Mix',
+  'Rest-first for now',
+] as const;
+
+/** B2 — body.capacity */
+export const BODY_CAPACITIES = [
+  'Low energy',
+  'Okay if short',
+  'Ready to build',
+  'Recovery / pain — go easy',
+  'Prefer not to say',
+] as const;
+
+/** L1 — life.domains (pick up to 2) */
+export const LIFE_DOMAINS = [
+  'Work / career',
+  'Relationships',
+  'Home / family load',
+  'Money feel (not advice)',
+  'Habits / routines',
+  'Self / identity',
+] as const;
+
+/** L3 — life.support_pref (pick up to 2) */
+export const LIFE_SUPPORT_PREFS = [
+  'Kind words',
+  'Someone showing up / time',
+  'Help with tasks',
+  'Practical ideas',
+  'Space alone first',
+] as const;
+
 export type SeasonLabel = (typeof SEASON_LABELS)[number];
 export type HardWindow = (typeof HARD_WINDOWS)[number];
 export type HealTheme = (typeof HEAL_THEMES)[number];
 export type HealMode = (typeof HEAL_MODES)[number];
 export type HealEnergy = (typeof HEAL_ENERGIES)[number];
+export type MedLength = (typeof MED_LENGTHS)[number];
+export type MedExperience = (typeof MED_EXPERIENCES)[number];
+export type BodyModality = (typeof BODY_MODALITIES)[number];
+export type BodyCapacity = (typeof BODY_CAPACITIES)[number];
+export type LifeDomain = (typeof LIFE_DOMAINS)[number];
+export type LifeSupportPref = (typeof LIFE_SUPPORT_PREFS)[number];
 
-/** Optional soft-launch Self-healing pack (skippable). */
+/** Optional soft-launch survey pack (skippable). */
 export interface SurveyAnswers {
   seasonLabel?: SeasonLabel;
   hardWindow?: HardWindow;
   healThemes?: HealTheme[];
   healMode?: HealMode;
   healEnergy?: HealEnergy;
+  medLength?: MedLength;
+  medExperience?: MedExperience;
+  bodyModality?: BodyModality;
+  bodyCapacity?: BodyCapacity;
+  lifeDomains?: LifeDomain[];
+  lifeLighter10?: string;
+  lifeSupportPrefs?: LifeSupportPref[];
 }
 
 export interface OnboardingPayload {
@@ -115,6 +184,25 @@ export function isCheckinRhythm(value: unknown): value is CheckinRhythm {
     typeof value === 'string' &&
     (CHECKIN_RHYTHMS as readonly string[]).includes(value)
   );
+}
+
+function parseMultiPick<T extends string>(
+  raw: unknown,
+  allowed: readonly T[],
+  max: number
+): T[] | null {
+  const list = Array.isArray(raw)
+    ? raw
+    : typeof raw === 'string'
+      ? [raw]
+      : null;
+  if (!list || list.length < 1 || list.length > max) return null;
+  const out: T[] = [];
+  for (const entry of list) {
+    if (!isOneOf(entry, allowed)) return null;
+    if (!out.includes(entry)) out.push(entry);
+  }
+  return out.length ? out : null;
 }
 
 function parseSurveyAnswers(
@@ -141,22 +229,8 @@ function parseSurveyAnswers(
   }
 
   if (obj.heal_theme != null) {
-    const themesRaw = Array.isArray(obj.heal_theme)
-      ? obj.heal_theme
-      : typeof obj.heal_theme === 'string'
-        ? [obj.heal_theme]
-        : null;
-    if (!themesRaw || themesRaw.length < 1 || themesRaw.length > 2) {
-      return { ok: false, error: 'invalid_heal_theme' };
-    }
-    const themes: HealTheme[] = [];
-    for (const t of themesRaw) {
-      if (!isOneOf(t, HEAL_THEMES)) {
-        return { ok: false, error: 'invalid_heal_theme' };
-      }
-      if (!themes.includes(t)) themes.push(t);
-    }
-    if (themes.length < 1) return { ok: false, error: 'invalid_heal_theme' };
+    const themes = parseMultiPick(obj.heal_theme, HEAL_THEMES, 2);
+    if (!themes) return { ok: false, error: 'invalid_heal_theme' };
     survey.healThemes = themes;
   }
 
@@ -174,12 +248,68 @@ function parseSurveyAnswers(
     survey.healEnergy = obj.heal_energy;
   }
 
+  if (obj.med_length != null) {
+    if (!isOneOf(obj.med_length, MED_LENGTHS)) {
+      return { ok: false, error: 'invalid_med_length' };
+    }
+    survey.medLength = obj.med_length;
+  }
+
+  if (obj.med_experience != null) {
+    if (!isOneOf(obj.med_experience, MED_EXPERIENCES)) {
+      return { ok: false, error: 'invalid_med_experience' };
+    }
+    survey.medExperience = obj.med_experience;
+  }
+
+  if (obj.body_modality != null) {
+    if (!isOneOf(obj.body_modality, BODY_MODALITIES)) {
+      return { ok: false, error: 'invalid_body_modality' };
+    }
+    survey.bodyModality = obj.body_modality;
+  }
+
+  if (obj.body_capacity != null) {
+    if (!isOneOf(obj.body_capacity, BODY_CAPACITIES)) {
+      return { ok: false, error: 'invalid_body_capacity' };
+    }
+    survey.bodyCapacity = obj.body_capacity;
+  }
+
+  if (obj.life_domains != null) {
+    const domains = parseMultiPick(obj.life_domains, LIFE_DOMAINS, 2);
+    if (!domains) return { ok: false, error: 'invalid_life_domains' };
+    survey.lifeDomains = domains;
+  }
+
+  if (obj.life_lighter_10 != null) {
+    if (typeof obj.life_lighter_10 !== 'string') {
+      return { ok: false, error: 'invalid_life_lighter_10' };
+    }
+    const trimmed = obj.life_lighter_10.trim().slice(0, 120);
+    if (!trimmed) return { ok: false, error: 'invalid_life_lighter_10' };
+    survey.lifeLighter10 = trimmed;
+  }
+
+  if (obj.life_support_pref != null) {
+    const prefs = parseMultiPick(obj.life_support_pref, LIFE_SUPPORT_PREFS, 2);
+    if (!prefs) return { ok: false, error: 'invalid_life_support_pref' };
+    survey.lifeSupportPrefs = prefs;
+  }
+
   if (
     !survey.seasonLabel &&
     !survey.hardWindow &&
     !survey.healThemes &&
     !survey.healMode &&
-    !survey.healEnergy
+    !survey.healEnergy &&
+    !survey.medLength &&
+    !survey.medExperience &&
+    !survey.bodyModality &&
+    !survey.bodyCapacity &&
+    !survey.lifeDomains &&
+    !survey.lifeLighter10 &&
+    !survey.lifeSupportPrefs
   ) {
     return { ok: true };
   }
@@ -266,12 +396,36 @@ function surveyFactRows(
   if (survey.healEnergy) {
     rows.push({ key: 'heal.energy', value: survey.healEnergy });
   }
+  if (survey.medLength) {
+    rows.push({ key: 'med.length_min', value: survey.medLength });
+  }
+  if (survey.medExperience) {
+    rows.push({ key: 'med.experience', value: survey.medExperience });
+  }
+  if (survey.bodyModality) {
+    rows.push({ key: 'body.modality', value: survey.bodyModality });
+  }
+  if (survey.bodyCapacity) {
+    rows.push({ key: 'body.capacity', value: survey.bodyCapacity });
+  }
+  if (survey.lifeDomains?.length) {
+    rows.push({ key: 'life.domains', value: survey.lifeDomains.join(' · ') });
+  }
+  if (survey.lifeLighter10) {
+    rows.push({ key: 'life.lighter_10', value: survey.lifeLighter10 });
+  }
+  if (survey.lifeSupportPrefs?.length) {
+    rows.push({
+      key: 'life.support_pref',
+      value: survey.lifeSupportPrefs.join(' · '),
+    });
+  }
   return rows;
 }
 
 /**
  * Seed ~1–2 conversational facts + prefs from onboarding; mark complete.
- * Optional survey pack writes season / hard_window / heal.* facts.
+ * Optional survey pack writes season / hard_window / heal.* / med.* / body.* / life.* facts.
  * Always writes user_facts (works under CHAT_DEV_BYPASS). Updates users row when present.
  */
 export async function persistOnboarding(

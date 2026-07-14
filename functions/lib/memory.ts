@@ -12,7 +12,12 @@ export const PILLARS = [
 
 export type PillarId = (typeof PILLARS)[number];
 
-export type WaveStatus = 'none' | 'starting' | 'active' | 'paused';
+export type WaveStatus =
+  | 'none'
+  | 'starting'
+  | 'active'
+  | 'paused'
+  | 'completed';
 
 export interface WaveContext {
   pillar?: PillarId;
@@ -85,7 +90,8 @@ export function parseWaveContext(raw: unknown): WaveContext | undefined {
     obj.status === 'none' ||
     obj.status === 'starting' ||
     obj.status === 'active' ||
-    obj.status === 'paused'
+    obj.status === 'paused' ||
+    obj.status === 'completed'
       ? obj.status
       : undefined;
 
@@ -214,7 +220,8 @@ export function waveFromFacts(facts: StoredFact[]): WaveContext | null {
     statusRaw === 'none' ||
     statusRaw === 'starting' ||
     statusRaw === 'active' ||
-    statusRaw === 'paused'
+    statusRaw === 'paused' ||
+    statusRaw === 'completed'
       ? statusRaw
       : undefined;
 

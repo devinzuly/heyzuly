@@ -1,8 +1,11 @@
 import { useAuth, useClerk, useUser } from '@clerk/clerk-react';
 import { useCallback, useEffect, useState, type ReactNode } from 'react';
 import { ChatPanel } from './ChatPanel';
+import { GrowPanel } from './GrowPanel';
 import { OnboardingFlow } from './OnboardingFlow';
 import { WaveTodayPanel } from './WaveTodayPanel';
+
+type AppTab = 'talk' | 'grow';
 
 interface UserMenuProps {
   email: string;
@@ -37,22 +40,32 @@ function UserMenu({ email, onSignOut }: UserMenuProps) {
   );
 }
 
-const NAV_ITEMS = [
-  { id: 'today', label: 'Today', active: false },
-  { id: 'talk', label: 'Talk', active: true },
-  { id: 'plan', label: 'Plan', active: false },
-  { id: 'grow', label: 'Grow', active: false },
-  { id: 'you', label: 'You', active: false },
-];
+const NAV_ITEMS: Array<{ id: AppTab | 'today' | 'plan' | 'you'; label: string; enabled: boolean }> =
+  [
+    { id: 'today', label: 'Today', enabled: false },
+    { id: 'talk', label: 'Talk', enabled: true },
+    { id: 'plan', label: 'Plan', enabled: false },
+    { id: 'grow', label: 'Grow', enabled: true },
+    { id: 'you', label: 'You', enabled: false },
+  ];
 
 interface ShellChromeProps {
   email: string;
   onSignOut?: () => void;
   children: ReactNode;
   banner?: string;
+  activeTab: AppTab;
+  onTabChange: (tab: AppTab) => void;
 }
 
-function ShellChrome({ email, onSignOut, children, banner }: ShellChromeProps) {
+function ShellChrome({
+  email,
+  onSignOut,
+  children,
+  banner,
+  activeTab,
+  onTabChange,
+}: ShellChromeProps) {
   return (
     <div className="app-shell">
       {banner ? <p className="app-dev-banner">{banner}</p> : null}
@@ -72,18 +85,26 @@ function ShellChrome({ email, onSignOut, children, banner }: ShellChromeProps) {
 
       <div className="app-body">
         <nav className="app-sidebar" aria-label="App sections">
-          {NAV_ITEMS.map((item) => (
-            <button
-              key={item.id}
-              type="button"
-              className={`app-nav-item${item.active ? ' is-active' : ''}`}
-              aria-current={item.active ? 'page' : undefined}
-              disabled={!item.active}
-            >
-              <span className="app-nav-dot" aria-hidden="true" />
-              {item.label}
-            </button>
-          ))}
+          {NAV_ITEMS.map((item) => {
+            const isActive = item.enabled && item.id === activeTab;
+            return (
+              <button
+                key={item.id}
+                type="button"
+                className={`app-nav-item${isActive ? ' is-active' : ''}`}
+                aria-current={isActive ? 'page' : undefined}
+                disabled={!item.enabled}
+                onClick={() => {
+                  if (item.id === 'talk' || item.id === 'grow') {
+                    onTabChange(item.id);
+                  }
+                }}
+              >
+                <span className="app-nav-dot" aria-hidden="true" />
+                {item.label}
+              </button>
+            );
+          })}
         </nav>
 
         <main className="app-main">{children}</main>
@@ -120,6 +141,8 @@ export function DevAppShell() {
   const [gateReady, setGateReady] = useState(false);
   const [needsOnboarding, setNeedsOnboarding] = useState(true);
   const [chatKey, setChatKey] = useState(0);
+  const [waveRefreshKey, setWaveRefreshKey] = useState(0);
+  const [activeTab, setActiveTab] = useState<AppTab>('talk');
 
   useEffect(() => {
     let cancelled = false;
@@ -148,6 +171,8 @@ export function DevAppShell() {
   const onOnboardingComplete = useCallback(() => {
     setNeedsOnboarding(false);
     setChatKey((k) => k + 1);
+    setWaveRefreshKey((k) => k + 1);
+    setActiveTab('talk');
   }, []);
 
   if (!gateReady) {
@@ -158,15 +183,25 @@ export function DevAppShell() {
     <ShellChrome
       email="dev@localhost"
       banner="Dev bypass — no Clerk. API must have CHAT_DEV_BYPASS=true in .dev.vars."
+      activeTab={activeTab}
+      onTabChange={setActiveTab}
     >
       {needsOnboarding ? (
         <OnboardingFlow onComplete={onOnboardingComplete} />
       ) : null}
-      {!needsOnboarding ? <WaveTodayPanel refreshKey={chatKey} /> : null}
-      <ChatPanel
-        key={chatKey}
-        subtitle="Local chat stub (no Clerk). Crisis keywords route to 988; Anthropic optional."
-      />
+      {!needsOnboarding && activeTab === 'talk' ? (
+        <>
+          <WaveTodayPanel refreshKey={waveRefreshKey} />
+          <ChatPanel
+            key={chatKey}
+            subtitle="Local chat stub (no Clerk). Crisis keywords route to 988; Anthropic optional."
+            onDayPlanConfirmed={() => setWaveRefreshKey((k) => k + 1)}
+          />
+        </>
+      ) : null}
+      {!needsOnboarding && activeTab === 'grow' ? (
+        <GrowPanel refreshKey={chatKey} />
+      ) : null}
     </ShellChrome>
   );
 }
@@ -179,6 +214,8 @@ export function AppShell() {
   const [needsOnboarding, setNeedsOnboarding] = useState(false);
   const [inviteBlocked, setInviteBlocked] = useState(false);
   const [chatKey, setChatKey] = useState(0);
+  const [waveRefreshKey, setWaveRefreshKey] = useState(0);
+  const [activeTab, setActiveTab] = useState<AppTab>('talk');
 
   useEffect(() => {
     if (!isLoaded || !isSignedIn) {
@@ -224,6 +261,8 @@ export function AppShell() {
   const onOnboardingComplete = useCallback(() => {
     setNeedsOnboarding(false);
     setChatKey((k) => k + 1);
+    setWaveRefreshKey((k) => k + 1);
+    setActiveTab('talk');
   }, []);
 
   if (!isLoaded) {
@@ -266,14 +305,28 @@ export function AppShell() {
   const email = user?.primaryEmailAddress?.emailAddress ?? 'you';
 
   return (
-    <ShellChrome email={email} onSignOut={() => signOut({ redirectUrl: '/' })}>
+    <ShellChrome
+      email={email}
+      onSignOut={() => signOut({ redirectUrl: '/' })}
+      activeTab={activeTab}
+      onTabChange={setActiveTab}
+    >
       {needsOnboarding ? (
         <OnboardingFlow getToken={getToken} onComplete={onOnboardingComplete} />
       ) : null}
-      {!needsOnboarding ? (
-        <WaveTodayPanel getToken={getToken} refreshKey={chatKey} />
+      {!needsOnboarding && activeTab === 'talk' ? (
+        <>
+          <WaveTodayPanel getToken={getToken} refreshKey={waveRefreshKey} />
+          <ChatPanel
+            key={chatKey}
+            getToken={getToken}
+            onDayPlanConfirmed={() => setWaveRefreshKey((k) => k + 1)}
+          />
+        </>
       ) : null}
-      <ChatPanel key={chatKey} getToken={getToken} />
+      {!needsOnboarding && activeTab === 'grow' ? (
+        <GrowPanel getToken={getToken} refreshKey={chatKey} />
+      ) : null}
     </ShellChrome>
   );
 }

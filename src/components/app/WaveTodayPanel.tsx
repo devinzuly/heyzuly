@@ -52,6 +52,7 @@ function pillarLabel(id: string): string {
 export function WaveTodayPanel({ getToken, refreshKey = 0 }: WaveTodayPanelProps) {
   const [wave, setWave] = useState<WavePayload | null>(null);
   const [today, setToday] = useState<TodayPayload | null>(null);
+  const [nextCheckin, setNextCheckin] = useState('');
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
@@ -108,6 +109,18 @@ export function WaveTodayPanel({ getToken, refreshKey = 0 }: WaveTodayPanelProps
 
       applyBundle(data);
       setHint('');
+
+      try {
+        const nudgeRes = await fetch('/api/nudges', { method: 'GET', headers });
+        const nudgeData = await nudgeRes.json();
+        if (nudgeRes.ok && nudgeData.ok && nudgeData.next_checkin?.label) {
+          setNextCheckin(String(nudgeData.next_checkin.label));
+        } else {
+          setNextCheckin('');
+        }
+      } catch {
+        setNextCheckin('');
+      }
     } catch {
       setError('Network error loading your Wave.');
     } finally {
@@ -255,6 +268,9 @@ export function WaveTodayPanel({ getToken, refreshKey = 0 }: WaveTodayPanelProps
           <p className="wave-today-meta">
             Week {wave.week} · {pillarLabel(wave.primary_pillar)} · growing, not grinding
           </p>
+          {nextCheckin ? (
+            <p className="wave-today-checkin">Next check-in: {nextCheckin}</p>
+          ) : null}
         </div>
         <div className="wave-today-actions">
           <button

@@ -91,7 +91,8 @@ Set on the Pages project `heyzuly`:
 | `WAITLIST_EXPORT_SECRET` | Yes (for export) | Bearer token for `GET /api/waitlist/export` |
 | `WAITLIST_IP_SALT` | Recommended | Salts IP hashes in D1 |
 | `CLERK_SECRET_KEY` | Yes (Phase 3 auth) | Verifies Clerk sessions in Pages Functions |
-| `INVITE_ADMIN_SECRET` | Optional | Bearer token for `POST /api/invite/grant` |
+| `INVITE_ADMIN_SECRET` | Optional | Bearer token for `POST /api/invite/grant` (also accepted by nudge cron) |
+| `CRON_SECRET` | Optional | Bearer for `POST /api/cron/nudges` / `POST /api/nudges/run` |
 | `INVITE_REQUIRED` | Optional | Set `true` to gate sign-up to invited emails only |
 | `PUBLIC_CLERK_PUBLISHABLE_KEY` | Yes (Phase 3 build) | **Build env** on Pages (not a secret) — inlined at `npm run build` |
 | `ANTHROPIC_API_KEY` | Optional (Phase 4) | Real chat replies; omit → canned stub |
@@ -176,7 +177,8 @@ Open the URL wrangler prints (usually http://localhost:8788).
 | `.dev.vars` | `CLERK_SECRET_KEY` | Pages Functions — verify sessions at `/api/users/*` |
 | `.dev.vars` | `CHAT_DEV_BYPASS` | Local only — `/api/chat` without Clerk when secret unset |
 | `.dev.vars` | `ANTHROPIC_API_KEY` | Optional — real Anthropic replies |
-| `.dev.vars` | `INVITE_ADMIN_SECRET` | Optional — grant invites via API |
+| `.dev.vars` | `INVITE_ADMIN_SECRET` | Optional — grant invites via API; also auth for nudge cron |
+| `.dev.vars` | `CRON_SECRET` | Optional — `POST /api/cron/nudges` Bearer (preferred) |
 | `.dev.vars` | `INVITE_REQUIRED` | Optional — `true` blocks non-invited emails |
 
 ```bash
@@ -298,6 +300,30 @@ npm run db:migrate:memory:remote   # after wrangler login
 
 ---
 
+## Phase 5d — Check-in nudge stubs (no email/SMS send)
+
+Logic only: who is due today from `rhythm.checkin` (`daily_light` / `few_times_week` / `when_open`), soft `rhythm.hard_window` preferred hour, skip if recent crisis user turn or day plan already done. Writes D1 `nudge_log` with `sent_stub` | `skipped` — **never** calls Resend, Twilio, or Meta.
+
+| Endpoint | Auth | Behavior |
+|---|---|---|
+| `POST /api/cron/nudges` | Bearer `CRON_SECRET` or `INVITE_ADMIN_SECRET`; or local `CHAT_DEV_BYPASS` when neither secret is set | Evaluate candidates; insert stub rows |
+| `POST /api/nudges/run` | Same | Alias of cron route |
+| `GET /api/nudges` | Clerk / `CHAT_DEV_BYPASS` | Current user: `next_checkin` estimate + recent `nudge_log` |
+
+**Real send = vendor hold.** Wire Resend (email) or Twilio (SMS) / Meta (WhatsApp) only after this stub path is trusted. Length helpers live in `functions/lib/channels.ts` (SMS ≤160 split, WA-friendly truncate) — no Meta API.
+
+```bash
+npm run db:migrate:nudges:local   # migration 0006 nudge_log
+# with pages:dev running + onboarding/Wave done for dev-bypass:
+curl -X POST http://localhost:8788/api/cron/nudges \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer YOUR_CRON_OR_INVITE_SECRET" \
+  -d "{\"user_id\":\"dev-bypass\"}"
+curl http://localhost:8788/api/nudges
+```
+
+---
+
 ## Manual D1 queries
 
 ```bash
@@ -319,10 +345,12 @@ curl -H "Accept: text/csv" -H "Authorization: Bearer YOUR_EXPORT_SECRET" https:/
 |---|---|
 | `npm run setup:waitlist` | Full idempotent setup (Node, cross-platform) |
 | `scripts/setup-waitlist.ps1` | Windows wrapper → same Node script |
-| `npm run db:migrate:local` | Local D1 (waitlist + auth + chat messages) |
+| `npm run db:migrate:local` | Local D1 (waitlist + auth + chat + memory + waves + nudge_log) |
 | `npm run db:migrate:remote` | Remote D1 (needs login) |
 | `npm run db:migrate:chat:local` | Local D1: `conversations` + `messages` only |
 | `npm run db:migrate:chat:remote` | Remote D1: chat tables only |
+| `npm run db:migrate:nudges:local` | Local D1: `nudge_log` only |
+| `npm run db:migrate:nudges:remote` | Remote D1: `nudge_log` only |
 | `npm run pages:dev` | Build + `wrangler pages dev dist` |
 | `npm run deploy:pages` | Build + `wrangler pages deploy` |
 
