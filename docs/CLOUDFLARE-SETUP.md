@@ -128,17 +128,36 @@ npm run deploy
 
 Requires `wrangler login`.
 
-### Git-connected Pages (recommended for CI)
+﻿### Git-connected Pages (recommended for CI)
 
-1. Connect repo in Cloudflare dashboard (Build command: `npm run build`, Output: `dist`).
-2. Ensure `wrangler.toml` has correct `database_id` and D1 binding.
-3. Push to `main` — Pages builds and deploys Functions from `functions/`.
+Auto-deploy on `git push` requires a **non-empty Pages build command**. An empty command was why Git builds failed on commit `72c1040` while `npm run deploy:pages` worked:
+
+1. Clone succeeded, then: `No build command specified. Skipping build step.`
+2. Pages still bundled `functions/` with **no `npm install` / `node_modules`**.
+3. Bundle error: `Could not resolve "@clerk/backend"` (`functions/lib/auth.ts`).
+4. Direct Wrangler deploy worked because deps were already installed locally.
+
+#### Required Pages build settings
+
+**Workers & Pages → heyzuly → Settings → Builds**:
+
+| Setting | Value |
+|---|---|
+| Root directory | *(empty)* |
+| Build command | `npm run build` |
+| Build output directory | `dist` |
+| Node version | **20** (`NODE_VERSION=20` build env, or repo `.nvmrc`) |
+
+Set **Build** env `PUBLIC_CLERK_PUBLISHABLE_KEY` so Clerk is inlined into `/sign-in` / `/app`. Keep runtime secrets (`CLERK_SECRET_KEY`, waitlist salts, etc.) on Production / Preview.
+
+After fixing Build command: dashboard **Retry deployment**, or push to `main`.
 
 ```bash
 git push origin main
 ```
 
----
+Ensure `wrangler.toml` has the correct `database_id` and D1 binding (`DB`). Git deploys sync Functions from `functions/`.
+
 
 ## Local development
 
